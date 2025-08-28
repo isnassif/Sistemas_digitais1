@@ -1,73 +1,82 @@
-module decimacao #(
+module med_blocos #(
     parameter LARGURA    = 4,
     parameter ALTURA     = 4,
     parameter FATOR      = 2,
     parameter NEW_LARG   = LARGURA / FATOR,
-    parameter NEW_ALTURA = ALTURA / FATOR
+    parameter NEW_ALTURA = ALTURA  / FATOR
 )(
     input  wire clk,
     input  wire rst,
-    output wire [7:0] saida_0,  
-    output wire [7:0] saida_1,
-    output wire [7:0] saida_2,  
-    output wire [7:0] saida_3
+    output wire [7:0] saida_4,
+    output wire [7:0] saida_5,
+    output wire [7:0] saida_6,
+    output wire [7:0] saida_7
 );
 
-    reg [7:0] memoria_entrada [0:LARGURA*ALTURA-1];
-    reg [7:0] memoria_saida   [0:NEW_LARG*NEW_ALTURA-1];
-    integer k;
-    reg [10:0] linha, coluna;
+    reg [7:0]  memoria_entrada [0:LARGURA*ALTURA-1];
+    reg [7:0]  memoria_saida   [0:NEW_LARG*NEW_ALTURA-1];
 
-    // Inicialização da memória de entrada
+    reg [10:0] linha, coluna;   // âncora do bloco
+    reg [10:0] di, dj;          // offsets dentro do bloco
+    reg [15:0] soma;
+
+    integer k;
+
+    // inicialização (apenas simulação)
     initial begin
-        memoria_entrada[0]  = 8'd1;
-        memoria_entrada[1]  = 8'd2;
-        memoria_entrada[2]  = 8'd3;
-        memoria_entrada[3]  = 8'd4;
-        memoria_entrada[4]  = 8'd5;
-        memoria_entrada[5]  = 8'd6;
-        memoria_entrada[6]  = 8'd7;
-        memoria_entrada[7]  = 8'd8;
-        memoria_entrada[8]  = 8'd9;
-        memoria_entrada[9]  = 8'd10;
-        memoria_entrada[10] = 8'd11;
-        memoria_entrada[11] = 8'd12;
-        memoria_entrada[12] = 8'd13;
-        memoria_entrada[13] = 8'd14;
-        memoria_entrada[14] = 8'd15;
-        memoria_entrada[15] = 8'd16;
-		  for (k = 0; k < NEW_LARG*NEW_ALTURA; k = k+1) begin
-				memoria_saida[k] = 8'd0;
-		  end
+        memoria_entrada[0]=1;  memoria_entrada[1]=2;  memoria_entrada[2]=3;  memoria_entrada[3]=4;
+        memoria_entrada[4]=5;  memoria_entrada[5]=6;  memoria_entrada[6]=7;  memoria_entrada[7]=8;
+        memoria_entrada[8]=9;  memoria_entrada[9]=10; memoria_entrada[10]=11; memoria_entrada[11]=12;
+        memoria_entrada[12]=13; memoria_entrada[13]=14; memoria_entrada[14]=15; memoria_entrada[15]=16;
     end
+
+    // pixel atual (combinacional) e soma futura já incluindo esse pixel
+    wire [7:0]  pixel_cur   = memoria_entrada[(linha+di)*LARGURA + (coluna+dj)];
+    wire [15:0] soma_next   = soma + pixel_cur;
+    localparam  DIV = FATOR*FATOR;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            linha  <= 0;
-            coluna <= 0;
+            linha  <= 0; 
+				coluna <= 0;
+            di <= 0; 
+				dj <= 0;
+            soma <= 0;
         end else begin
-            // Só pega pixel quando linha e coluna são múltiplos de FATOR
-            if ((linha % FATOR == 0) && (coluna % FATOR == 0)) begin
-                memoria_saida[(linha / FATOR) * NEW_LARG + (coluna / FATOR)] 
-                    <= memoria_entrada[linha * LARGURA + coluna];
-            end
+            // último elemento do bloco?
+            if (di == FATOR-1 && dj == FATOR-1) begin
+                // grava média do bloco (usa soma_next que já inclui o último pixel)
+                memoria_saida[(linha/FATOR)*NEW_LARG + (coluna/FATOR)] <= soma_next / DIV;
+                soma <= 0;
+                di <= 0; 
+					 dj <= 0;
 
-            // Avança na varredura
-            if (coluna == LARGURA-1) begin
-                coluna <= 0;
-                if (linha == ALTURA-1)
-                    linha <= 0;
-                else
-                    linha <= linha + 1;
+                // avança âncora do próximo bloco (pula por FATOR e respeita borda)
+                if (coluna == LARGURA - FATOR) begin
+                    coluna <= 0;
+                    if (linha == ALTURA - FATOR)
+                        linha <= 0;
+                    else
+                        linha <= linha + FATOR;
+                end else begin
+                    coluna <= coluna + FATOR;
+                end
             end else begin
-                coluna <= coluna + 1;
+                // acumula e avança dentro do bloco
+                soma <= soma_next;
+                if (dj == FATOR-1) begin
+                    dj <= 0;
+                    di <= di + 1;
+                end else begin
+                    dj <= dj + 1;
+                end
             end
         end
     end
 
-    assign saida_0  = memoria_saida[0];
-    assign saida_1  = memoria_saida[1];
-    assign saida_2  = memoria_saida[2];
-    assign saida_3  = memoria_saida[3];
-
+    assign saida_4 = memoria_saida[0];
+    assign saida_5 = memoria_saida[1];
+    assign saida_6 = memoria_saida[2];
+    assign saida_7 = memoria_saida[3];
 endmodule
+
