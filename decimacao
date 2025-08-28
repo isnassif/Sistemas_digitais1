@@ -1,12 +1,12 @@
 module decimacao #(
-    parameter LARGURA   = 4,
-    parameter ALTURA    = 4,
-    parameter FATOR     = 2,
-    parameter NEW_LARG  = LARGURA / FATOR,
-    parameter NEW_ALTURA= ALTURA / FATOR
+    parameter LARGURA    = 4,
+    parameter ALTURA     = 4,
+    parameter FATOR      = 2,
+    parameter NEW_LARG   = LARGURA / FATOR,
+    parameter NEW_ALTURA = ALTURA / FATOR
 )(
     input  wire clk,
-    input  wire rst
+    input  wire rst,
     output wire [7:0] saida_0,  
     output wire [7:0] saida_1,
     output wire [7:0] saida_2,  
@@ -17,7 +17,6 @@ module decimacao #(
     reg [7:0] memoria_saida   [0:NEW_LARG*NEW_ALTURA-1];
 
     reg [10:0] linha, coluna;
-    reg [10:0] ired, jred;
 
     // Inicialização da memória de entrada
     initial begin
@@ -46,9 +45,8 @@ module decimacao #(
         end else begin
             // Só pega pixel quando linha e coluna são múltiplos de FATOR
             if ((linha % FATOR == 0) && (coluna % FATOR == 0)) begin
-                ired <= linha / FATOR;
-                jred <= coluna / FATOR;
-                memoria_saida[ired * NEW_LARG + jred] <= memoria_entrada[linha * LARGURA + coluna];
+                memoria_saida[(linha / FATOR) * NEW_LARG + (coluna / FATOR)] 
+                    <= memoria_entrada[linha * LARGURA + coluna];
             end
 
             // Avança na varredura
@@ -68,4 +66,5 @@ module decimacao #(
     assign saida_1  = memoria_saida[1];
     assign saida_2  = memoria_saida[2];
     assign saida_3  = memoria_saida[3];
+
 endmodule
