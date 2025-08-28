@@ -7,6 +7,10 @@ module decimacao #(
 )(
     input  wire clk,
     input  wire rst
+    output wire [7:0] saida_0,  
+    output wire [7:0] saida_1,
+    output wire [7:0] saida_2,  
+    output wire [7:0] saida_3
 );
 
     reg [7:0] memoria_entrada [0:LARGURA*ALTURA-1];
@@ -59,4 +63,9 @@ module decimacao #(
             end
         end
     end
+
+    assign saida_0  = memoria_saida[0];
+    assign saida_1  = memoria_saida[1];
+    assign saida_2  = memoria_saida[2];
+    assign saida_3  = memoria_saida[3];
 endmodule
