@@ -15,7 +15,7 @@ module decimacao #(
 
     reg [7:0] memoria_entrada [0:LARGURA*ALTURA-1];
     reg [7:0] memoria_saida   [0:NEW_LARG*NEW_ALTURA-1];
-
+    integer k;
     reg [10:0] linha, coluna;
 
     // Inicialização da memória de entrada
@@ -36,6 +36,9 @@ module decimacao #(
         memoria_entrada[13] = 8'd14;
         memoria_entrada[14] = 8'd15;
         memoria_entrada[15] = 8'd16;
+		  for (k = 0; k < NEW_LARG*NEW_ALTURA; k = k+1) begin
+				memoria_saida[k] = 8'd0;
+		  end
     end
 
     always @(posedge clk or posedge rst) begin
