@@ -1,0 +1,79 @@
+module med_blocos #(
+    parameter LARGURA = 4,
+    parameter ALTURA  = 4,
+    parameter FATOR   = 2,
+    parameter NEW_LARG   = LARGURA / FATOR,
+    parameter NEW_ALTURA = ALTURA / FATOR
+)(
+    input wire clk,
+    input wire rst
+);
+
+    reg [7:0] memoria_entrada [0:LARGURA*ALTURA-1];
+    reg [7:0] memoria_saida   [0:NEW_LARG*NEW_ALTURA-1];
+
+    reg [10:0] linha, coluna, di, dj;
+    reg [15:0] soma; 
+    reg [7:0]  media;
+	  reg [7:0] pixel;
+
+    initial begin
+        memoria_entrada[0]  = 8'd1;
+        memoria_entrada[1]  = 8'd2;
+        memoria_entrada[2]  = 8'd3;
+        memoria_entrada[3]  = 8'd4;
+        memoria_entrada[4]  = 8'd5;
+        memoria_entrada[5]  = 8'd6;
+        memoria_entrada[6]  = 8'd7;
+        memoria_entrada[7]  = 8'd8;
+        memoria_entrada[8]  = 8'd9;
+        memoria_entrada[9]  = 8'd10;
+        memoria_entrada[10] = 8'd11;
+        memoria_entrada[11] = 8'd12;
+        memoria_entrada[12] = 8'd13;
+        memoria_entrada[13] = 8'd14;
+        memoria_entrada[14] = 8'd15;
+        memoria_entrada[15] = 8'd16;
+    end
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            linha  <= 0;
+            coluna <= 0;
+            di     <= 0;
+            dj     <= 0;
+            soma   <= 0;
+        end else begin
+        // captura o pixel atual
+            pixel <= memoria_entrada[(linha+di)*LARGURA + (coluna+dj)];
+
+        // acumula o pixel do ciclo anterior
+            soma <= soma + pixel;
+
+            if (dj == FATOR-1) begin
+                dj <= 0;
+                if (di == FATOR-1) begin
+                    di <= 0;
+
+                    
+                    media <= soma / (FATOR*FATOR);
+                    memoria_saida[(linha/FATOR)*NEW_LARG + (coluna/FATOR)] <= media;
+                    soma <= 0;
+
+                   
+                    if (coluna == LARGURA-1) begin
+                        coluna <= 0;
+                        if (linha == ALTURA-1)
+                            linha <= 0;
+                        else
+                            linha <= linha + 1;
+                    end else
+                        coluna <= coluna + 1;
+                end else
+                    di <= di + 1;
+            end else
+                dj <= dj + 1;
+        end
+    end
+
+endmodule
