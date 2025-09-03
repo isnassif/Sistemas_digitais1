@@ -23,7 +23,6 @@ module rep_pixel #(
 
     reg [10:0] linha, coluna, di, dj;
 
-    // pixel atual calculado combinacionalmente
     wire [7:0] pixel = memoria_entrada[linha*LARGURA + coluna];
     wire [10:0] addr  = (linha*FATOR + di)*NEW_LARG + (coluna*FATOR + dj);
 
@@ -38,10 +37,8 @@ module rep_pixel #(
         if (rst) begin
             linha  <= 0; coluna <= 0; di <= 0; dj <= 0;
         end else begin
-            // escreve já com o pixel correto
             memoria_saida[addr] <= pixel;
 
-            // iteradores
             if (dj == FATOR-1) begin
                 dj <= 0;
                 if (di == FATOR-1) begin
