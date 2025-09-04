@@ -1,0 +1,29 @@
+from PIL import Image
+
+def png_to_mif(png_path, mif_path, depth=256, width=8):
+    # Abrir imagem
+    img = Image.open(png_path).convert('L')  # converter para escala de cinza
+    
+    # Redimensionar para caber no depth
+    img = img.resize((depth, 1))  # largura = depth, altura 1
+    
+    pixels = list(img.getdata())
+    
+    # Criar arquivo MIF
+    with open(mif_path, 'w') as f:
+        f.write(f"DEPTH = {depth};\n")
+        f.write(f"WIDTH = {width};\n")
+        f.write("ADDRESS_RADIX = HEX;\n")
+        f.write("DATA_RADIX = HEX;\n")
+        f.write("CONTENT\n")
+        f.write("BEGIN\n")
+        
+        for addr, pixel in enumerate(pixels):
+            # pixel é 0-255, converte para hex com 2 dígitos (para 8 bits)
+            data = f"{pixel:02X}"
+            f.write(f"{addr:04X} : {data};\n")
+        
+        f.write("END;\n")
+
+# Exemplo de uso
+png_to_mif("imagemcolada.png", 'saida.mif', depth=256, width=8)
