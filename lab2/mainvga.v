@@ -14,7 +14,7 @@ module main (
 	output sync,
 	output clks
 );
-	wire fio = next_y*320 +next_x;
+	wire fio = next_y*640 +next_x;
 	wire [7:0] c;
 	
 	reg clk_vga = 0;
