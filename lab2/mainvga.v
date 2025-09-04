@@ -1,11 +1,10 @@
 module main ( 
     input vga_reset,
     input clk_50MHz,
-    input [7:0] pixel_color,
-    input [8:0] next_x,
-    input [8:0] next_y,
     input [9:0] SW,
     output [9:0] LEDR,
+	 output [9:0] next_x,
+    output[9:0] next_y,
     output hsyncm,
     output vsyncm,
     output [7:0] redm,
@@ -26,10 +25,12 @@ module main (
 	vga_driver draw  ( 
 						  .clock(clk_vga),        // 25 MHz PLL
                     .reset(vga_reset),      // Active high reset, manipulated by instantiating module
-                    .color_in(SW[7:0]), // Pixel color (RRRGGGBB) for pixel being drawn
+                    .color_in(color), // Pixel color (RRRGGGBB) for pixel being drawn
                     .hsync(hsyncm),         // All of the connections to the VGA screen below
                     .vsync(vsyncm),
                     .red(redm),
+						  .next_x(next_x),
+						  .next_y(next_y),
                     .green(greenm),
                     .blue(bluem),
                     .sync(sync),
@@ -37,6 +38,15 @@ module main (
                     .blank(blank)
 );
 
-endmodule
+	memory draw(
+		.adress(),
+		.clock(clk_vga),
+		.q()
+		
+	);
+	
+	wire [7:0] color;
+	assign color = (next_x[3] == 1'b1) ? 8'b11100000 : SW;
 
+endmodule
 
