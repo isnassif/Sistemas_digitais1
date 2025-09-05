@@ -55,6 +55,9 @@ module vga_driver (
 
     reg     [7:0]    h_state ;
     reg     [7:0]    v_state ;
+    wire [7:0] gray;
+	 assign gray = color_in;
+  
 
     // State machine
     always@(posedge clock) begin
@@ -149,9 +152,10 @@ module vga_driver (
             //////////////////////////////// COLOR OUT ///////////////////////////////
             //////////////////////////////////////////////////////////////////////////
             // Assign colors if in active mode
-            red_reg<=(h_state==H_ACTIVE_STATE)?((v_state==V_ACTIVE_STATE)?{color_in[7:5],5'd_0}:8'd_0):8'd_0 ;
-            green_reg<=(h_state==H_ACTIVE_STATE)?((v_state==V_ACTIVE_STATE)?{color_in[4:2],5'd_0}:8'd_0):8'd_0 ;
-            blue_reg<=(h_state==H_ACTIVE_STATE)?((v_state==V_ACTIVE_STATE)?{color_in[1:0],6'd_0}:8'd_0):8'd_0 ;
+
+          red_reg   <= (h_state==H_ACTIVE_STATE && v_state==V_ACTIVE_STATE) ? gray : 8'd0;
+          green_reg <= (h_state==H_ACTIVE_STATE && v_state==V_ACTIVE_STATE) ? gray : 8'd0;
+          blue_reg  <= (h_state==H_ACTIVE_STATE && v_state==V_ACTIVE_STATE) ? gray : 8'd0;
 
         end
     end
