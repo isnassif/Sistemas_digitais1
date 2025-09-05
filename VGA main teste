@@ -1,0 +1,57 @@
+module main ( 
+    input vga_reset,
+    input clk_50MHz,
+    input [9:0] SW,
+    output [9:0] LEDR,
+    output [9:0] next_x,
+    output [9:0] next_y,
+    output hsyncm,
+    output vsyncm,
+    output [7:0] redm,
+    output [7:0] greenm,
+    output [7:0] bluem,
+    output blank,
+    output sync,
+    output clks
+);
+
+    reg clk_vga = 0;
+    always @(posedge clk_50MHz) begin
+        clk_vga <= ~clk_vga;
+    end
+
+    wire [7:0] color_in;
+
+    vga_driver draw (
+        .clock(clk_vga),
+        .reset(vga_reset),
+        .color_in(color_in),
+        .hsync(hsyncm),
+        .vsync(vsyncm),
+        .red(redm),
+        .green(greenm),
+        .blue(bluem),
+        .next_x(next_x),
+        .next_y(next_y),
+        .sync(sync),
+        .clk(clks),
+        .blank(blank)
+    );
+
+    wire [18:0] address;
+    assign address = next_y * 640 + next_x;
+
+    wire [7:0] c;
+
+    memoryteste rom_image (
+        .address(address),
+        .clock(clk_vga),
+        .q(c)
+    );
+
+    wire active_area = (next_x < 640) && (next_y < 480);
+    assign color_in = active_area ? c : 8'd0;
+
+    assign LEDR = SW;
+
+endmodule
