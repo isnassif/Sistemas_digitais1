@@ -39,11 +39,11 @@ module datapath (
 
 
 
-	  wire [7:0] px_de_cima
+	  wire [7:0] px_de_cima;
 	  wire [7:0] resultado_da_ula;
-     wire [7:0] entrada_A;
-     wire [7:0] entrada_B;
-     wire [3:0] opcode_ula; 
+      wire [7:0] entrada_A;
+      wire [7:0] entrada_B;
+      wire [3:0] opcode_ula; 
 	  wire [9:0] soma_10bits;
 	  wire [7:0] resultado_10bits;
 		
