@@ -91,7 +91,7 @@ module vga_driver (
                 h_counter <= (h_counter==H_FRONT)?10'd_0:(h_counter + 10'd_1) ;
                 // Set hsync
                 hysnc_reg <= HIGH ;
-                // State transition
+                // State transitionclk_50MHz
                 h_state <= (h_counter == H_FRONT)?H_PULSE_STATE:H_FRONT_STATE ;
             end
             if (h_state == H_PULSE_STATE) begin
