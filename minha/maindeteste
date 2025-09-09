@@ -1,0 +1,117 @@
+module main ( 
+    input vga_reset,
+    input clk_50MHz,
+    output [9:0] next_x,
+    output [9:0] next_y,
+    output hsyncm,
+    output vsyncm,
+    output [7:0] redm,
+    output [7:0] greenm,
+    output [7:0] bluem,
+    output blank,
+    output sync,
+    output clks
+);
+
+    // Clock VGA (25 MHz)
+    reg clk_vga = 0;
+    always @(posedge clk_50MHz) begin
+        clk_vga <= ~clk_vga;
+    end
+
+    // VGA driver
+    vga_driver draw (
+        .clock(clk_vga),
+        .reset(vga_reset),
+        .next_x(next_x),
+        .next_y(next_y),
+        .hsync(hsyncm),
+        .vsync(vsyncm),
+        .sync(sync),
+        .clk(clks),
+        .blank(blank)
+    );
+
+    // Parâmetros da imagem
+    parameter IMG_W = 160;
+    parameter IMG_H = 120;
+    parameter FATOR = 2; // Fator de replicação (zoom)
+
+    // Offsets para centralizar
+    wire [9:0] x_offset = (640 - IMG_W * FATOR) / 2; // 240
+    wire [9:0] y_offset = (480 - IMG_H * FATOR) / 2; // 180
+
+    // Verifica se está dentro da área da imagem replicada
+    wire in_image = (next_x >= x_offset && next_x < x_offset + IMG_W * FATOR) &&
+                    (next_y >= y_offset && next_y < y_offset + IMG_H * FATOR);
+
+    // Endereço da RAM (ajustado para a imagem replicada)
+    reg [18:0] addr_reg;
+    always @(posedge clk_vga) begin
+        if (in_image)
+            addr_reg <= ((next_y - y_offset) / FATOR) * IMG_W + ((next_x - x_offset) / FATOR);
+        else
+            addr_reg <= 0; // Fora da imagem → fundo preto
+    end
+
+    // Framebuffer RAM
+    wire [7:0] c;
+    ram2port framebuffer (
+        .clock(clk_vga),
+        .data(wr_data),
+        .rdaddress(addr_reg),
+        .wraddress(wr_addr),
+        .wren(wr_en),
+        .q(c)
+    );
+
+    // Saída VGA
+    assign redm   = (blank && in_image) ? c : 8'd0;
+    assign greenm = (blank && in_image) ? c : 8'd0;
+    assign bluem  = (blank && in_image) ? c : 8'd0;
+
+    // ROM (imagem original)
+    wire [7:0] rom_pixel;
+    wire [18:0] rom_addr;
+
+    mem rom_image (
+        .address(rom_addr),
+        .clock(clk_vga),
+        .q(rom_pixel)
+    );
+
+    // Chamada do módulo de replicação
+    wire [7:0] o_pixel_saida;
+    wire o_pixel_saida_valido;
+    wire o_linha_saida_valida;
+    
+    // Instanciando o módulo de replicação
+    rep_pixel_stream_pt (
+        .clk(clk_vga),                       // Conecta o clock
+        .rst(vga_reset),                     // Conecta o reset
+        .i_pixel_entrada(rom_pixel),         // Conecta o pixel da ROM
+        .i_pixel_entrada_valido(1'b1),       // Sinal de validade do pixel
+        .i_linha_entrada_valida(1'b1),       // Sinal de validade da linha (sempre válida)
+        .o_pixel_saida(o_pixel_saida),       // Pixel de saída replicado
+        .o_pixel_saida_valido(o_pixel_saida_valido), // Sinal de validade do pixel de saída
+        .o_linha_saida_valida(o_linha_saida_valida)  // Sinal de validade da linha de saída
+    );
+
+    // Atualiza o endereço e dados para escrever na RAM com os pixels replicados
+    wire [18:0] wr_addr;
+    wire [7:0] wr_data = o_pixel_saida;   // Dados da RAM vêm do pixel replicado
+    wire wr_en = o_pixel_saida_valido;    // O sinal de escrita é válido quando o pixel replicado é válido
+
+    // Copiador ROM → RAM (modificado para usar a saída do rep_pixel_stream_pt)
+    rom_to_ram copier (
+        .clk(clk_vga),
+        .reset(vga_reset),
+        .rom_addr(rom_addr),         // Endereço da ROM (não usado diretamente)
+        .rom_data(rom_pixel),        // Dados da ROM (não usados diretamente)
+        .ram_wraddr(wr_addr),        // Endereço para escrita na RAM
+        .ram_data(wr_data),          // Dados a serem escritos (pixel replicado)
+        .ram_wren(wr_en),            // Habilita escrita na RAM quando o pixel é válido
+        .done()                      // Indica quando a cópia foi concluída
+    );
+
+endmodule
