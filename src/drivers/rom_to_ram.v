@@ -9,9 +9,10 @@ module rom_to_ram (
     output reg done
 );
 
-    parameter TOTAL_PIXELS = 160*120; // 307200
+    parameter TOTAL_PIXELS = 160*120; // pixels da ROM
 
     reg [18:0] counter;
+    reg [7:0] rom_data_reg;
 
     always @(posedge clk or negedge reset) begin
         if (!reset) begin
@@ -21,19 +22,19 @@ module rom_to_ram (
             ram_data <= 0;
             ram_wren <= 0;
             done <= 0;
-        end
-        else begin
+            rom_data_reg <= 0;
+        end else begin
+            rom_data_reg <= rom_data; // pega dado com 1 ciclo de atraso
+
             if (counter < TOTAL_PIXELS) begin
-                // Copia um pixel por ciclo
-                rom_addr <= counter;
+                rom_addr   <= counter;
                 ram_wraddr <= counter;
-                ram_data <= rom_data;
-                ram_wren <= 1;
-                counter <= counter + 1;
-            end
-            else begin
+                ram_data   <= rom_data_reg;
+                ram_wren   <= 1;
+                counter    <= counter + 1;
+            end else begin
                 ram_wren <= 0;
-                done <= 1; // cópia finalizada
+                done <= 1;
             end
         end
     end
