@@ -9,21 +9,22 @@ module rep_pixel #(
     input ALTURA,
     input [7:0]pixel_rom,
     output[18:0]addr_rom,
-    output [7:0]pixel_saida
+    output [7:0]pixel_saida,
+    output[10:0] addr_ram_vga
 );
 
 
     reg [10:0] linha, coluna, di, dj;
     addr_rom = linha*LARGURA + coluna;
     wire [7:0] pixel = pixel_rom;
-    wire [10:0] addr  = (linha*FATOR + di)*NEW_LARG + (coluna*FATOR + dj);
+    addr_ram_vga  = (linha*FATOR + di)*NEW_LARG + (coluna*FATOR + dj);
 
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             linha  <= 0; coluna <= 0; di <= 0; dj <= 0;
         end else begin
-            memoria_saida[addr] <= pixel;
+            pixel_saida <= pixel;
 
             if (dj == FATOR-1) begin
                 dj <= 0;
