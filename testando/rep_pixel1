@@ -11,45 +11,52 @@ module rep_pixel1 #(
     input [18:0] addr_rom,
     output reg[7:0] pixel_saida,
     output reg[18:0] addr_ram_vga,
-	 output reg[18:0] saida_addr
+	 output reg[18:0] saida_addr,
+	 output reg done
 );
 	
     reg [10:0] linha, coluna, di, dj;
-	 reg[18:0] ref;
+	 
 	 
     wire [7:0] pixel = pixel_rom;
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
 		      saida_addr <= 0;
-            ref <= addr_rom;;
             addr_ram_vga <= 0;
             linha  <= 0;
             coluna <= 0;
+				done <= 0;
             di <= 0;
             dj <= 0;
         end else begin
-            ref <= linha*LARGURA + coluna;
             addr_ram_vga <= (linha*FATOR + di)*NEW_LARG + (coluna*FATOR + dj);
-				saida_addr <= ref;
+				saida_addr <= linha*LARGURA + coluna;
             pixel_saida <= pixel;
 
-            if (dj == FATOR-1) begin
-                dj <= 0;
-                if (di == FATOR-1) begin
-                    di <= 0;
-                    if (coluna == LARGURA-1) begin
-                        coluna <= 0;
-                        linha <= (linha == ALTURA-1) ? 0 : (linha + 1);
-                    end else begin
-                        coluna <= coluna + 1;
-                    end
-                end else begin
-                    di <= di + 1;
-                end
-            end else begin
-                dj <= dj + 1;
-            end
+            if (dj == FATOR - 1) begin
+					 dj <= 0;
+					 if (di == FATOR - 1) begin
+						  di <= 0;
+						  if (coluna == LARGURA - 1) begin
+								coluna <= 0;
+								if (linha == ALTURA - 1) begin
+									 linha <= 0;
+									 done <= 1;
+								end else begin
+									 linha <= linha + 1;
+								
+								end
+						  end else begin
+								coluna <= coluna + 1;
+						  end
+					 end else begin
+						  di <= di + 1;
+					 end
+				end else begin
+					 dj <= dj + 1;
+				end
+
         end
     end
 
