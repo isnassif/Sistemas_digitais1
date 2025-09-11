@@ -9,7 +9,7 @@ module main (
     output blank,
     output sync,
     output clks,
-	 output [8:0] LEDS
+	output [8:0] LEDS
 );
 
     // Clock VGA (25 MHz)
@@ -18,7 +18,11 @@ module main (
         clk_vga <= ~clk_vga;
     end
 
-    // VGA driver
+	
+	// VGA driver
+    wire [9:0] next_x;
+    wire [9:0] next_y;
+
     vga_driver draw (
         .clock(clk_vga),
         .reset(vga_reset),
@@ -38,15 +42,13 @@ module main (
     // parâmetros da imagem
     parameter IMG_W = 320;
     parameter IMG_H = 240;
-	 wire [18:0] addr_geral;
-	 wire done_rep;
+	wire [18:0] addr_geral;
+	wire done_rep;
 
-	 wire [9:0] next_x;
-    wire [9:0] next_y;
 	 
     // offsets para centralizar
-    wire [9:0] x_offset = (640 - IMG_W)/2; // 240
-    wire [9:0] y_offset = (480 - IMG_H)/2; // 180
+    wire [9:0] x_offset = (640 - IMG_W)/2; // 160
+    wire [9:0] y_offset = (480 - IMG_H)/2; // 120
 
     // verifica se está dentro da área da imagem
     wire in_image = (next_x >= x_offset && next_x < x_offset + IMG_W) &&
@@ -83,7 +85,7 @@ module main (
     );
 	  
 	 ram1port r1port(
-		.address(addr_geral),
+	   .address(addr_geral),
 	   .clock(clk_50MHz),
 	   .data(out_repixel),
 	   .wren(~done_rep),
