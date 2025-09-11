@@ -1,0 +1,8 @@
+	 memram rammem(
+		.address(ram_vga_addr),
+	   .clock(clk_vga),
+	   .data(saida_alg),
+		.wren(1'b1),
+		.q(c)
+	 
+	 );
