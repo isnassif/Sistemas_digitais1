@@ -8,7 +8,7 @@ module rep_pixel #(
     input LARGURA,
     input ALTURA,
     input [7:0]pixel_rom,
-    output[18:0]addr_rom,
+    output[10:0]addr_rom,
     output [7:0]pixel_saida,
     output[10:0] addr_ram_vga
 );
