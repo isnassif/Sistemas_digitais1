@@ -23,14 +23,17 @@ module main (
     vga_driver draw (
         .clock(clk_vga),
         .reset(vga_reset),
-		  .color_in(),
+        .color_in(color_in),  // Atribuindo o sinal color_in
         .next_x(next_x),
         .next_y(next_y),
         .hsync(hsyncm),
         .vsync(vsyncm),
         .sync(sync),
         .clk(clks),
-        .blank(blank)
+        .blank(blank),
+        .red(redm),   // Atribuindo para os sinais de cor no vga_driver
+        .green(greenm),
+        .blue(bluem)
     );
 
     // parâmetros da imagem
@@ -65,11 +68,6 @@ module main (
         .q(c)
     );
 
-    // saída VGA
-    assign redm   = (blank && in_image) ? c : 8'd0;
-    assign greenm = (blank && in_image) ? c : 8'd0;
-    assign bluem  = (blank && in_image) ? c : 8'd0;
-
     // ROM (imagem original)
     wire [7:0] rom_pixel;
     wire [18:0] rom_addr;
@@ -95,5 +93,9 @@ module main (
         .ram_wren(wr_en),
         .done()
     );
+
+    // Atribuindo o color_in para ser a cor do framebuffer ou preto fora da imagem
+    wire [7:0] color_in;
+    assign color_in = (in_image) ? c : 8'd0; // Se dentro da imagem, use cor da RAM, senão fundo preto
 
 endmodule
