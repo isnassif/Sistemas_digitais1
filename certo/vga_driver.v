@@ -73,6 +73,7 @@ module vga_driver (
     assign next_y  = (v_count <= V_ACTIVE) ? v_count : 10'd0;
 
     // Saída de cor (só válida na região ativa)
+    // Agora, aqui a lógica verifica se está em branco e em área ativa, e coloca a cor ou preto.
     assign red   = (blank) ? color_in : 8'd0;
     assign green = (blank) ? color_in : 8'd0;
     assign blue  = (blank) ? color_in : 8'd0;
