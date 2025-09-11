@@ -1,18 +1,17 @@
 module rep_pixel #(
-    parameter LARGURA = 2,
-    parameter ALTURA  = 2,
     parameter FATOR   = 2,
     parameter NEW_LARG    = FATOR * LARGURA,
     parameter NEW_ALTURA  = FATOR * ALTURA
 )(
     input  wire clk,
     input  wire rst,
-    input pixel_rom,
-    output[18:0]addr_rom
+    input LARGURA,
+    input ALTURA,
+    input [7:0]pixel_rom,
+    output[18:0]addr_rom,
+    output [7:0]pixel_saida
 );
 
-    reg [7:0] memoria_entrada [0:LARGURA*ALTURA-1];
-    reg [7:0] memoria_saida   [0:NEW_LARG*NEW_ALTURA-1];
 
     reg [10:0] linha, coluna, di, dj;
     addr_rom = linha*LARGURA + coluna;
