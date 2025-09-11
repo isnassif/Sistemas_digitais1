@@ -7,31 +7,18 @@ module rep_pixel #(
 )(
     input  wire clk,
     input  wire rst,
-
-    output wire [7:0] saida_0,  output wire [7:0] saida_1,
-    output wire [7:0] saida_2,  output wire [7:0] saida_3,
-    output wire [7:0] saida_4,  output wire [7:0] saida_5,
-    output wire [7:0] saida_6,  output wire [7:0] saida_7,
-    output wire [7:0] saida_8,  output wire [7:0] saida_9,
-    output wire [7:0] saida_10, output wire [7:0] saida_11,
-    output wire [7:0] saida_12, output wire [7:0] saida_13,
-    output wire [7:0] saida_14, output wire [7:0] saida_15
+    input pixel_rom,
+    output[18:0]addr_rom
 );
 
     reg [7:0] memoria_entrada [0:LARGURA*ALTURA-1];
     reg [7:0] memoria_saida   [0:NEW_LARG*NEW_ALTURA-1];
 
     reg [10:0] linha, coluna, di, dj;
-
-    wire [7:0] pixel = memoria_entrada[linha*LARGURA + coluna];
+    addr_rom = linha*LARGURA + coluna;
+    wire [7:0] pixel = pixel_rom;
     wire [10:0] addr  = (linha*FATOR + di)*NEW_LARG + (coluna*FATOR + dj);
 
-    initial begin
-        memoria_entrada[0] = 8'd1;
-        memoria_entrada[1] = 8'd2;
-        memoria_entrada[2] = 8'd3;
-        memoria_entrada[3] = 8'd4;
-    end
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -58,20 +45,4 @@ module rep_pixel #(
         end
     end
 
-    assign saida_0  = memoria_saida[0];
-    assign saida_1  = memoria_saida[1];
-    assign saida_2  = memoria_saida[2];
-    assign saida_3  = memoria_saida[3];
-    assign saida_4  = memoria_saida[4];
-    assign saida_5  = memoria_saida[5];
-    assign saida_6  = memoria_saida[6];
-    assign saida_7  = memoria_saida[7];
-    assign saida_8  = memoria_saida[8];
-    assign saida_9  = memoria_saida[9];
-    assign saida_10 = memoria_saida[10];
-    assign saida_11 = memoria_saida[11];
-    assign saida_12 = memoria_saida[12];
-    assign saida_13 = memoria_saida[13];
-    assign saida_14 = memoria_saida[14];
-    assign saida_15 = memoria_saida[15];
 endmodule
