@@ -9,7 +9,7 @@ module rom_to_ram (
     output reg done
 );
 
-    parameter TOTAL_PIXELS = 640*480; // pixels da ROM
+    parameter TOTAL_PIXELS = 320*240; // pixels da ROM
 
     reg [18:0] counter;
     reg [7:0] rom_data_reg;
