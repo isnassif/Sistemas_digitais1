@@ -19,6 +19,9 @@ module main (
         clk_vga <= ~clk_vga;
     end
 
+	//rep pixel
+	
+
     // VGA driver
     vga_driver draw (
         .clock(clk_vga),
@@ -36,7 +39,15 @@ module main (
     // parâmetros da imagem
     parameter IMG_W = 160;
     parameter IMG_H = 120;
-
+	rep_pixel rpixel(
+		.clk(clk_vga),
+		.reset(vga_reset),
+		.LARGURA(IMG_W),
+		.ALTURA(IMG_H),
+		.pixel_rom(rom_pixel),
+		.
+		
+)
     // offsets para centralizar
     wire [9:0] x_offset = (640 - IMG_W)/2; // 240
     wire [9:0] y_offset = (480 - IMG_H)/2; // 180
