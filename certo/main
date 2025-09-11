@@ -23,7 +23,7 @@ module main (
     vga_driver draw (
         .clock(clk_vga),
         .reset(vga_reset),
-		  .color_in(),
+		.color_in(in_image ? c : 8'd0),
         .next_x(next_x),
         .next_y(next_y),
         .hsync(hsyncm),
@@ -65,10 +65,6 @@ module main (
         .q(c)
     );
 
-    // saída VGA
-    assign redm   = (blank && in_image) ? c : 8'd0;
-    assign greenm = (blank && in_image) ? c : 8'd0;
-    assign bluem  = (blank && in_image) ? c : 8'd0;
 
     // ROM (imagem original)
     wire [7:0] rom_pixel;
