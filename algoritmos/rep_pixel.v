@@ -1,5 +1,5 @@
 module rep_pixel #(
-    parameter FATOR   = 2,
+    parameter FATOR = 2,
     parameter NEW_LARG    = FATOR * LARGURA,
     parameter NEW_ALTURA  = FATOR * ALTURA
 )(
