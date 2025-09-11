@@ -37,6 +37,8 @@ module main (
     );
 
     // parâmetros da imagem
+    wire[7:0] saida_alg;
+    wire[12:0] ram_vga_addr;
     parameter IMG_W = 160;
     parameter IMG_H = 120;
 	rep_pixel rpixel(
@@ -45,7 +47,9 @@ module main (
 		.LARGURA(IMG_W),
 		.ALTURA(IMG_H),
 		.pixel_rom(rom_pixel),
-		.
+		.addr_rom(rom_addr),
+		.pixel_saida(saida_alg),
+		.addr_ram_vga(ram_vga_addr)
 		
 )
     // offsets para centralizar
@@ -95,8 +99,8 @@ module main (
     rom_to_ram copier (
         .clk(clk_vga),
         .reset(vga_reset),
-        .rom_addr(rom_addr),
-        .rom_data(rom_pixel),
+        .rom_addr(ram_vga_addr),
+        .rom_data(saida_alg),
         .ram_wraddr(wr_addr),
         .ram_data(wr_data),
         .ram_wren(wr_en),
