@@ -1,42 +1,68 @@
-module rom_to_ram (
-    input clk,
-    input reset,
+module rom_to_ram #(
+    parameter LARGURA = 160,
+    parameter ALTURA  = 120,
+    parameter FATOR   = 2,
+    parameter NEW_LARG   = LARGURA * FATOR,
+    parameter NEW_ALTURA = ALTURA  * FATOR
+)(
+    input wire clk,
+    input wire reset,
+    input wire switch,
+
     output reg [18:0] rom_addr,
-    input [7:0] rom_data,
+    input wire [7:0] rom_data,
     output reg [18:0] ram_wraddr,
     output reg [7:0] ram_data,
     output reg ram_wren,
     output reg done
 );
 
-    parameter TOTAL_PIXELS = 160*120; // pixels da ROM
+    // Contadores
+    reg [8:0] linha = 0;
+    reg [8:0] coluna = 0;
+    reg [8:0] di = 0;
+    reg [8:0] dj = 0;
 
-    reg [18:0] counter;
-    reg [7:0] rom_data_reg;
+    wire [1:0] factor = (switch) ? FATOR : 1;
+    wire [9:0] width = (switch) ? NEW_LARG : LARGURA;
 
-    always @(posedge clk or negedge reset) begin
-        if (!reset) begin
-            counter <= 0;
-            rom_addr <= 0;
-            ram_wraddr <= 0;
-            ram_data <= 0;
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            linha <= 0; coluna <= 0;
+            di <= 0; dj <= 0;
             ram_wren <= 0;
             done <= 0;
-            rom_data_reg <= 0;
-        end else begin
-            rom_data_reg <= rom_data; // pega dado com 1 ciclo de atraso
+        end else if (!done) begin
+            // ROM
+            rom_addr <= linha * LARGURA + coluna;
 
-            if (counter < TOTAL_PIXELS) begin
-                rom_addr   <= counter;
-                ram_wraddr <= counter;
-                ram_data   <= rom_data_reg;
-                ram_wren   <= 1;
-                counter    <= counter + 1;
+            // RAM
+            ram_wraddr <= (linha * factor + di) * width + (coluna * factor + dj);
+            ram_data <= rom_data;
+            ram_wren <= 1;
+
+            // Próximo pixel na linha do bloco
+            if (dj < factor-1) begin
+                dj <= dj + 1;
             end else begin
-                ram_wren <= 0;
-                done <= 1;
+                dj <= 0;
+                if (di < factor-1) begin
+                    di <= di + 1;
+                end else begin
+                    di <= 0;
+                    if (coluna < LARGURA-1)
+                        coluna <= coluna + 1;
+                    else begin
+                        coluna <= 0;
+                        if (linha < ALTURA-1)
+                            linha <= linha + 1;
+                        else
+                            done <= 1;
+                    end
+                end
             end
+        end else begin
+            ram_wren <= 0;
         end
     end
-
 endmodule
