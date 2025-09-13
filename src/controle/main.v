@@ -1,6 +1,12 @@
+// ======================================================
+// MÓDULO MAIN
+// ======================================================
 module main (
-    input vga_reset,
-    input clk_50MHz,
+    input  vga_reset,
+    input  clk_50MHz,
+    input  switch,       // 0 = original 160x120, 1 = ampliado 320x240
+    output [9:0] next_x,
+    output [9:0] next_y,
     output hsyncm,
     output vsyncm,
     output [7:0] redm,
@@ -8,112 +14,126 @@ module main (
     output [7:0] bluem,
     output blank,
     output sync,
-    output clks,
-    output [8:0] LEDS
+    output clks
 );
 
-    // Clock VGA (25 MHz)
+    // =========================
+    // CLOCK VGA 25 MHz
+    // =========================
     reg clk_vga = 0;
-    always @(posedge clk_50MHz) begin
-        clk_vga <= ~clk_vga;
-    end
+    always @(posedge clk_50MHz) clk_vga <= ~clk_vga;
 
-    // Sincroniza reset (ativo alto) Gerado pelo deepseek, talves seja necessário voltar pra lógica antica
-    wire reset_sync;
-    assign reset_sync = ~vga_reset;  // Converte para reset ativo alto
+    // =========================
+    // PARÂMETROS IMAGEM
+    // =========================
+    parameter IMG_W     = 160;
+    parameter IMG_H     = 120;
+    parameter FATOR     = 2;
+    parameter IMG_W_AMP = IMG_W * FATOR; // 320
+    parameter IMG_H_AMP = IMG_H * FATOR; // 240
+
+    wire [9:0] img_w = (switch) ? IMG_W_AMP : IMG_W;
+    wire [9:0] img_h = (switch) ? IMG_H_AMP : IMG_H;
+    wire [9:0] x_offset = (640 - img_w)/2;
+    wire [9:0] y_offset = (480 - img_h)/2;
+
+    // =========================
+    // SINAIS VGA
+    // =========================
+    wire [9:0] nx, ny;
+    wire hsync, vsync, vblank;
 
     // VGA driver
-    wire [9:0] next_x;
-    wire [9:0] next_y;
-    wire [7:0] color_in;  // Declaração do sinal color_in
-    
     vga_driver draw (
         .clock(clk_vga),
-        .reset(reset_sync), // Em caso de erro, colocar esse parâmetro como o vga_reset
-        .color_in(color_in),  // Conectado ao sinal color_in
-        .next_x(next_x),
-        .next_y(next_y),
-        .hsync(hsyncm),
-        .vsync(vsyncm),
+        .reset(vga_reset),
+        .color_in(8'd0), // cor temporária, será sobrescrita pelo framebuffer
+        .next_x(nx),
+        .next_y(ny),
+        .hsync(hsync),
+        .vsync(vsync),
         .sync(sync),
         .clk(clks),
-        .blank(blank),
-        .red(redm),
-        .green(greenm),
-        .blue(bluem)
+        .blank(vblank),
+        .red(),
+        .green(),
+        .blue()
     );
 
-    // parâmetros da imagem
-    parameter IMG_W = 320;
-    parameter IMG_H = 240;
-    wire [18:0] addr_geral;
-    wire done_rep;
+    assign next_x = nx;
+    assign next_y = ny;
+    assign hsyncm  = hsync;
+    assign vsyncm  = vsync;
+    assign blank   = vblank;
 
-    // offsets para centralizar
-    wire [9:0] x_offset = (640 - IMG_W)/2; // 160
-    wire [9:0] y_offset = (480 - IMG_H)/2; // 120
-
-    // verifica se está dentro da área da imagem
-    wire in_image = (next_x >= x_offset && next_x < x_offset + IMG_W) &&
-                    (next_y >= y_offset && next_y < y_offset + IMG_H);
-
-    // endereço da RAM - sincronizado com clk_vga
+    // =========================
+    // ENDEREÇO DA RAM PARA LEITURA
+    // =========================
     reg [18:0] addr_reg;
+    wire in_image = (nx >= x_offset && nx < x_offset + img_w) &&
+                    (ny >= y_offset && ny < y_offset + img_h);
+
     always @(posedge clk_vga) begin
-        if (in_image)
-            addr_reg <= (next_y - y_offset) * IMG_W + (next_x - x_offset);
-        // Fora da imagem, não atualizamos o addr_reg (mantém o último valor)
+        if (in_image) begin
+            addr_reg <= (ny - y_offset) * img_w + (nx - x_offset);
+        end else begin
+            addr_reg <= 0;
+        end
     end
 
-    // ROM (imagem original)
+    // =========================
+    // FRAMEBUFFER RAM
+    // =========================
+    wire [7:0] c;
+    wire [18:0] wr_addr;
+    wire [7:0]  wr_data;
+    wire wr_en;
+
+    ram2port framebuffer (
+        .clock(clk_vga),
+        .data(wr_data),
+        .rdaddress(addr_reg),
+        .wraddress(wr_addr),
+        .wren(wr_en),
+        .q(c)
+    );
+
+    // =========================
+    // ROM (IMAGEM ORIGINAL)
+    // =========================
     wire [7:0] rom_pixel;
     wire [18:0] rom_addr;
 
     mem rom_image (
-        .address(out_addr),
+        .address(rom_addr),
         .clock(clk_vga),
         .q(rom_pixel)
     );
-    
-    // RAM - usando clock sincronizado
-    wire [7:0] c;
-    ram1port r1port(
-        .address(addr_geral),
-        .clock(clk_vga), // Passando o mesmo clok do vga (alteração)
-        .data(out_repixel),
-        .wren(~done_rep),
-        .q(c)
-    );
-    
-    // Módulo de repetição de pixel
-    wire [7:0] out_repixel;
-    wire [18:0] addr_ram_rep;
-    wire [18:0] out_addr;
-    
-    rep_pixel1 rep_instance(
+
+    // =========================
+    // COPIADOR ROM → RAM COM AMPLIAÇÃO
+    // =========================
+    wire copy_done;
+
+    rom_to_ram copier (
         .clk(clk_vga),
-        .rst(reset_sync), // Não estamos utilizando o vga_reset
-        .pixel_rom(rom_pixel),
-        .addr_rom(rom_addr),
-        .pixel_saida(out_repixel),
-        .addr_ram_vga(addr_ram_rep),
-        .saida_addr(out_addr),
-        .done(done_rep)
+        .reset(vga_reset),
+        .switch(switch),
+        .rom_addr(rom_addr),
+        .rom_data(rom_pixel),
+        .ram_wraddr(wr_addr),
+        .ram_data(wr_data),
+        .ram_wren(wr_en),
+        .done(copy_done)
     );
 
-    // Sincronização do endereço de escrita
-    reg [18:0] addr_ram_rep_sync;
-    always @(posedge clk_vga) begin
-        addr_ram_rep_sync <= addr_ram_rep;
-    end
-    
-    assign addr_geral = (done_rep) ? addr_reg : addr_ram_rep_sync;
+    // =========================
+    // COLOR IN
+    // =========================
+    wire [7:0] color_in = (in_image) ? c : 8'd0;
 
-    // Atribuição da cor de entrada do VGA
-    assign color_in = (in_image) ? c : 8'd0;
-
-    // Debug com LEDs
-    assign LEDS[7:0] = color_in[7:0];
-    assign LEDS[8] = done_rep;
+    assign redm   = color_in;
+    assign greenm = color_in;
+    assign bluem  = color_in;
 
 endmodule
