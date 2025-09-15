@@ -48,7 +48,7 @@ module rom_to_ram (
 	 
 	 
 	 wire ram_wren_dec_wire;
-    assign ram_wren_dec_wire = (ram_wraddr_dec != 0) ? 1'b1 : 1'b0; 
+	 assign ram_wren_dec_wire = ~done_dec;
     
     // Multiplexador - por enquanto só temos replicação
     always @(*) begin
@@ -183,62 +183,32 @@ module decimacao #(
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            rom_addr <= 0;
-            addr_ram_vga <= 0;
-            x_in <= 0;
-            y_in <= 0;
-            x_out <= 0;
-            y_out <= 0;
-            estado_x <= 0;
-            estado_y <= 0;
-            done <= 0;
-            pixel_saida <= 0;
-        end else if (~done) begin
-            // Gera endereço da ROM
-            rom_addr <= y_in * LARGURA + x_in;
-            
-            // Decima a cada FATOR pixels em X e Y
-            if (estado_x == 0 && estado_y == 0) begin
-                // Pixel selecionado para saída
-                pixel_saida <= pixel_rom;
-                addr_ram_vga <= y_out * NEW_LARG + x_out;
-                
-                // Avança coordenadas de saída
-                if (x_out == NEW_LARG - 1) begin
-                    x_out <= 0;
-                    if (y_out == NEW_ALTURA - 1) begin
-                        y_out <= 0;
-                        done <= 1; // Processamento concluído
-                    end else begin
-                        y_out <= y_out + 1;
-                    end
-                end else begin
-                    x_out <= x_out + 1;
-                end
-            end
-            
-            // Controla a varredura com decimação
-            if (x_in == LARGURA - 1) begin
-                x_in <= 0;
-                if (estado_y == FATOR - 1) begin
-                    estado_y <= 0;
-                    if (y_in == ALTURA - 1) begin
-                        y_in <= 0;
-                    end else begin
-                        y_in <= y_in + 1;
-                    end
-                end else begin
-                    estado_y <= estado_y + 1;
-                end
-            end else begin
-                x_in <= x_in + 1;
-            end
-            
-            if (estado_x == FATOR - 1) begin
-                estado_x <= 0;
-            end else begin
-                estado_x <= estado_x + 1;
-            end
-        end
-    end
+				  rom_addr     <= 0;
+				  addr_ram_vga <= 0;
+				  x_in         <= 0;
+				  y_in         <= 0;
+				  done         <= 0;
+				  pixel_saida  <= 0;
+			end else if (~done) begin
+				  // Endereço da ROM (entrada 160x120)
+				  rom_addr <= y_in * LARGURA + x_in;
+
+				  // Mapeia para saída decimada (80x60)
+				  pixel_saida   <= pixel_rom;
+				  addr_ram_vga  <= (y_in / FATOR) * NEW_LARG + (x_in / FATOR);
+
+				  // Avança coordenadas da ROM, pulando FATOR em X
+				  if (x_in >= LARGURA - FATOR) begin
+						x_in <= 0;
+						if (y_in >= ALTURA - FATOR) begin
+							 y_in <= 0;
+							 done <= 1;  // terminou toda a imagem
+						end else begin
+							 y_in <= y_in + FATOR;  // pula linhas
+						end
+				  end else begin
+						x_in <= x_in + FATOR;  // pula colunas
+				  end
+			 end
+	end
 endmodule
