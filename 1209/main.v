@@ -93,6 +93,7 @@ module main (
     rom_to_ram copier (
         .clk(clk_vga),
         .reset(vga_reset),
+        .seletor(2'b01),
         .rom_addr(rom_addr),
         .rom_data(rom_pixel),
         .ram_wraddr(wr_addr),
