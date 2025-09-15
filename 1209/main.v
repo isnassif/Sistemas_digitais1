@@ -42,8 +42,8 @@ module main (
     
     // parâmetros da imagem AMPLIADA
     parameter FATOR = 2;
-    parameter IMG_W_AMP = IMG_W * FATOR;  // 320
-    parameter IMG_H_AMP = IMG_H * FATOR;  // 240
+    parameter IMG_W_AMP = IMG_W / FATOR;  // 80
+    parameter IMG_H_AMP = IMG_H / FATOR;  // 60
 
     // offsets para centralizar a imagem AMPLIADA
     wire [9:0] x_offset = (640 - IMG_W_AMP)/2; // (640-320)/2 = 160
