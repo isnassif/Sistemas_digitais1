@@ -16,6 +16,12 @@ module rom_to_ram (
     wire [7:0] ram_data_rep;
     wire ram_wren_rep;
     wire done_rep;
+	 
+	 wire [18:0] rom_addr_dec;
+    wire [18:0] ram_wraddr_dec;
+    wire [7:0] ram_data_dec;
+    wire ram_wren_dec;
+    wire done_dec;
     
     // Instância do módulo de replicação
     rep_pixel rep_inst(
@@ -28,6 +34,21 @@ module rom_to_ram (
         .ram_wren(ram_wren_rep),
         .done(done_rep)
     );
+	 
+	 
+	 decimacao dec_inst(
+			.clk(clk),
+			.rst(reset),
+			.pixel_rom(rom_data),
+         .rom_addr(rom_addr_dec),
+         .addr_ram_vga(ram_wraddr_dec),
+         .pixel_saida(ram_data_dec),
+         .done(done_dec)	 	 
+	 );
+	 
+	 
+	 wire ram_wren_dec_wire;
+    assign ram_wren_dec_wire = (ram_wraddr_dec != 0) ? 1'b1 : 1'b0; 
     
     // Multiplexador - por enquanto só temos replicação
     always @(*) begin
@@ -39,6 +60,13 @@ module rom_to_ram (
                 ram_wren = ram_wren_rep;
                 done = done_rep;
             end
+				2'b01: begin
+					 rom_addr = rom_addr_dec;
+                ram_wraddr = ram_wraddr_dec;
+                ram_data = ram_data_dec;
+                ram_wren = ram_wren_dec_wire; // Usando o wire que criamos
+                done = done_dec;
+				end
             default: begin  // Default também para replicação
                 rom_addr = rom_addr_rep;
                 ram_wraddr = ram_wraddr_rep;
@@ -128,4 +156,89 @@ module rep_pixel(
         end
     end
 
+endmodule
+
+
+module decimacao #(
+    parameter FATOR = 2,
+    parameter LARGURA = 160,
+    parameter ALTURA = 120,
+    parameter NEW_LARG = LARGURA / FATOR,
+    parameter NEW_ALTURA = ALTURA / FATOR
+)(
+    input  wire clk,
+    input  wire rst,
+    input [7:0] pixel_rom,
+    output reg [18:0] rom_addr,
+    output reg [18:0] addr_ram_vga,
+    output reg [7:0] pixel_saida,
+    output reg done
+);
+    
+    reg [10:0] x_in, y_in;
+    reg [10:0] x_out, y_out;
+    
+    // Estados para controle
+    reg [1:0] estado_x, estado_y;
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            rom_addr <= 0;
+            addr_ram_vga <= 0;
+            x_in <= 0;
+            y_in <= 0;
+            x_out <= 0;
+            y_out <= 0;
+            estado_x <= 0;
+            estado_y <= 0;
+            done <= 0;
+            pixel_saida <= 0;
+        end else if (~done) begin
+            // Gera endereço da ROM
+            rom_addr <= y_in * LARGURA + x_in;
+            
+            // Decima a cada FATOR pixels em X e Y
+            if (estado_x == 0 && estado_y == 0) begin
+                // Pixel selecionado para saída
+                pixel_saida <= pixel_rom;
+                addr_ram_vga <= y_out * NEW_LARG + x_out;
+                
+                // Avança coordenadas de saída
+                if (x_out == NEW_LARG - 1) begin
+                    x_out <= 0;
+                    if (y_out == NEW_ALTURA - 1) begin
+                        y_out <= 0;
+                        done <= 1; // Processamento concluído
+                    end else begin
+                        y_out <= y_out + 1;
+                    end
+                end else begin
+                    x_out <= x_out + 1;
+                end
+            end
+            
+            // Controla a varredura com decimação
+            if (x_in == LARGURA - 1) begin
+                x_in <= 0;
+                if (estado_y == FATOR - 1) begin
+                    estado_y <= 0;
+                    if (y_in == ALTURA - 1) begin
+                        y_in <= 0;
+                    end else begin
+                        y_in <= y_in + 1;
+                    end
+                end else begin
+                    estado_y <= estado_y + 1;
+                end
+            end else begin
+                x_in <= x_in + 1;
+            end
+            
+            if (estado_x == FATOR - 1) begin
+                estado_x <= 0;
+            end else begin
+                estado_x <= estado_x + 1;
+            end
+        end
+    end
 endmodule
