@@ -1,8 +1,9 @@
 module rom_to_ram (
     input clk,
     input reset,
-    input [1:0] seletor, // 00: replicação, 01: decimação, 10: vizinho, 11: média
-    output reg [18:0] rom_addr,
+    input [1:0] seletor,// 00: replicação, 01: decimação, 10: vizinho, 11: média
+    output reg saida,
+	output reg [18:0] rom_addr,
     input [7:0] rom_data,
     output reg [18:0] ram_wraddr,
     output reg [7:0] ram_data,
@@ -49,7 +50,9 @@ module rom_to_ram (
 	 
 	 wire ram_wren_dec_wire;
 	 assign ram_wren_dec_wire = ~done_dec;
-    
+
+
+	initial begin 
     // Multiplexador - por enquanto só temos replicação
     always @(*) begin
         case(seletor)
