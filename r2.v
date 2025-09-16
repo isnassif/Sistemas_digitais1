@@ -184,7 +184,8 @@ module rep_pixel(
     end
 
 endmodule
-// Módulo de decimação corrigido
+
+
 module decimacao #(
     parameter FATOR = 2,
     parameter LARGURA = 160,
@@ -198,11 +199,12 @@ module decimacao #(
     output reg [18:0] rom_addr,
     output reg [18:0] addr_ram_vga,
     output reg [7:0] pixel_saida,
-    output reg ram_wren, // Adicionei esta saída
+    output reg ram_wren,
     output reg done
 );
     
-    reg [10:0] x_in, y_in;
+    reg [10:0] x_out, y_out;  // Coordenadas de SAÍDA (80x60)
+    reg [10:0] x_in, y_in;    // Coordenadas de ENTRADA (160x120)
 
     always @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -210,33 +212,41 @@ module decimacao #(
             addr_ram_vga <= 0;
             x_in <= 0;
             y_in <= 0;
+            x_out <= 0;
+            y_out <= 0;
             done <= 0;
             pixel_saida <= 0;
             ram_wren <= 0;
         end else if (~done) begin
-            // Endereço da ROM (entrada 160x120)
+            // Endereço da ROM: pega 1 pixel a cada FATOR pixels
             rom_addr <= y_in * LARGURA + x_in;
-
-            // Mapeia para saída decimada (80x60)
+            
+            // Endereço da RAM: imagem decimada (80x60)
+            addr_ram_vga <= y_out * NEW_LARG + x_out;
+            
+            // Dado a ser escrito
             pixel_saida <= pixel_rom;
-            addr_ram_vga <= (y_in / FATOR) * NEW_LARG + (x_in / FATOR);
-            ram_wren <= 1; // Ativa escrita durante o processo
+            ram_wren <= 1;
 
-            // Avança coordenadas da ROM
-            if (x_in >= LARGURA - FATOR) begin
-                x_in <= 0;
-                if (y_in >= ALTURA - FATOR) begin
-                    y_in <= 0;
-                    done <= 1;
-                    ram_wren <= 0; // Desativa escrita quando terminar
-                end else begin
-                    y_in <= y_in + FATOR;
-                end
-            end else begin
+            // Avança coordenadas
+            if (x_in < LARGURA - FATOR) begin
                 x_in <= x_in + FATOR;
+                x_out <= x_out + 1;
+            end else begin
+                x_in <= 0;
+                x_out <= 0;
+                if (y_in < ALTURA - FATOR) begin
+                    y_in <= y_in + FATOR;
+                    y_out <= y_out + 1;
+                end else begin
+                    y_in <= 0;
+                    y_out <= 0;
+                    done <= 1;
+                    ram_wren <= 0;
+                end
             end
         end else begin
-            ram_wren <= 0; // Mantém escrita desativada após conclusão
+            ram_wren <= 0;
         end
     end
 endmodule
