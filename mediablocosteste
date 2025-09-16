@@ -5,8 +5,8 @@ module rom_ram_med #(
     parameter NEW_LARG   = LARGURA * FATOR,
     parameter NEW_ALTURA = ALTURA  * FATOR
 )(
-    input wire clk,
-    input wire reset,
+    input wire clk_proc,
+    input wire reset_proc,
     input wire switch,
 
     output reg [18:0] rom_addr,
@@ -201,8 +201,8 @@ module mainv (
     wire copy_done;
 
     rom_ram_med media_bloco (
-        .clk(clk_vga),
-        .reset(copier_reset),  // <<<< RESET AUTOMÁTICO
+        .clk_proc(clk_vga),
+        .reset_proc(copier_reset),  // <<<< RESET AUTOMÁTICO
         .switch(switch),
         .rom_addr(rom_addr),
         .rom_data(rom_pixel),
