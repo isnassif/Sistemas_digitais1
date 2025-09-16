@@ -100,7 +100,7 @@ module rep_pixel(
     reg [10:0] linha, coluna, di, dj;
     reg [7:0] rom_data_reg;
 
-    always @(posedge clk or posedge reset) begin
+	always @(posedge clk or negedge reset) begin
         if (reset) begin
             rom_addr <= 0;
             ram_wraddr <= 0;
@@ -181,7 +181,7 @@ module decimacao #(
     // Estados para controle
     reg [1:0] estado_x, estado_y;
 
-    always @(posedge clk or posedge rst) begin
+	always @(posedge clk or negedge rst) begin
         if (rst) begin
 				  rom_addr     <= 0;
 				  addr_ram_vga <= 0;
