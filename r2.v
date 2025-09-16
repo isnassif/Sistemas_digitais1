@@ -3,7 +3,7 @@ module rom_to_ram (
     input reset,
     input [1:0] seletor,// 00: replicação, 01: decimação, 10: vizinho, 11: média
     output reg saida,
-	output reg [18:0] rom_addr,
+    output reg [18:0] rom_addr,
     input [7:0] rom_data,
     output reg [18:0] ram_wraddr,
     output reg [7:0] ram_data,
@@ -11,26 +11,20 @@ module rom_to_ram (
     output reg done
 );
 
-	 reg [1:0]state;
-	 parameter a = 2'b00,
-				  b = 2'b01;
-				  
-	initial begin
-		state <= a;
-		saida <= 1'b0;
-	end
-
-    // Fios para conectar ao módulo de replicação
+    reg [1:0] state;
+    parameter REPLICACAO = 2'b00,
+              DECIMACAO  = 2'b01;
+              
+    // Fios para conectar aos módulos
     wire [18:0] rom_addr_rep;
     wire [18:0] ram_wraddr_rep;
     wire [7:0] ram_data_rep;
     wire ram_wren_rep;
     wire done_rep;
-	 
-	 wire [18:0] rom_addr_dec;
+     
+    wire [18:0] rom_addr_dec;
     wire [18:0] ram_wraddr_dec;
     wire [7:0] ram_data_dec;
-    wire ram_wren_dec;
     wire done_dec;
     
     // Instância do módulo de replicação
@@ -38,57 +32,81 @@ module rom_to_ram (
         .clk(clk),
         .reset(reset),
         .rom_addr(rom_addr_rep),
-        .rom_data(rom_data),       // Conecta diretamente à entrada
+        .rom_data(rom_data),
         .ram_wraddr(ram_wraddr_rep),
         .ram_data(ram_data_rep),
         .ram_wren(ram_wren_rep),
         .done(done_rep)
     );
-	 
-	 
-	 decimacao dec_inst(
-			.clk(clk),
-			.rst(reset),
-			.pixel_rom(rom_data),
-         .rom_addr(rom_addr_dec),
-         .addr_ram_vga(ram_wraddr_dec),
-         .pixel_saida(ram_data_dec),
-         .done(done_dec)	 	 
-	 );
-	 
-	 
-	 wire ram_wren_dec_wire;
-	 assign ram_wren_dec_wire = ~done_dec;
+     
+    // Instância do módulo de decimação
+    decimacao dec_inst(
+        .clk(clk),
+        .rst(reset),
+        .pixel_rom(rom_data),
+        .rom_addr(rom_addr_dec),
+        .addr_ram_vga(ram_wraddr_dec),
+        .pixel_saida(ram_data_dec),
+        .done(done_dec)
+    );
+     
+    wire ram_wren_dec_wire;
+    assign ram_wren_dec_wire = ~done_dec;
 
+    // Inicialização
+    initial begin
+        state <= REPLICACAO;
+        saida <= 1'b0;
+        rom_addr <= 0;
+        ram_wraddr <= 0;
+        ram_data <= 0;
+        ram_wren <= 0;
+        done <= 0;
+    end
 
-	
-    always @(posedge clk or negedge reset) begin
-		  if(!reset) state <= a;
-		  else begin 
-			  case(state)
-				a: begin
-					rom_addr = rom_addr_rep;
-               ram_wraddr = ram_wraddr_rep;
-               ram_data = ram_data_rep;
-               ram_wren = ram_wren_rep;
-               done = done_rep;
-					if(seletor == 2'b01) state <= b;
-					else state <= a;
-					end
-				end
-				b:begin
-					rom_addr = rom_addr_dec;
-               ram_wraddr = ram_wraddr_dec;
-               ram_data = ram_data_dec;
-               ram_wren = ram_wren_dec_wire; // Usando o wire que criamos
-               done = done_dec;
-					if(seletor == 2'b00) state <= a;
-					else state <= b;
-					end
-				end
-			  endcase
+    // Máquina de estados
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            state <= REPLICACAO;
+            saida <= 1'b0;
+            rom_addr <= 0;
+            ram_wraddr <= 0;
+            ram_data <= 0;
+            ram_wren <= 0;
+            done <= 0;
+        end else begin
+            case(state)
+                REPLICACAO: begin
+                    rom_addr <= rom_addr_rep;
+                    ram_wraddr <= ram_wraddr_rep;
+                    ram_data <= ram_data_rep;
+                    ram_wren <= ram_wren_rep;
+                    done <= done_rep;
+                    
+                    if (seletor == 2'b01) begin
+                        state <= DECIMACAO;
+                    end
+                end
+                
+                DECIMACAO: begin
+                    rom_addr <= rom_addr_dec;
+                    ram_wraddr <= ram_wraddr_dec;
+                    ram_data <= ram_data_dec;
+                    ram_wren <= ram_wren_dec_wire;
+                    done <= done_dec;
+                    
+                    if (seletor == 2'b00) begin
+                        state <= REPLICACAO;
+                    end
+                end
+                
+                default: begin
+                    state <= REPLICACAO;
+                end
+            endcase
         end
-		end
+    end
+
 endmodule
 
 // Módulo de replicação de pixel
@@ -96,7 +114,7 @@ module rep_pixel(
     input clk,
     input reset,
     output reg [18:0] rom_addr,
-    input [7:0] rom_data,          
+    input [7:0] rom_data,
     output reg [18:0] ram_wraddr,
     output reg [7:0] ram_data,
     output reg ram_wren,
@@ -112,7 +130,7 @@ module rep_pixel(
     reg [10:0] linha, coluna, di, dj;
     reg [7:0] rom_data_reg;
 
-	always @(posedge clk or negedge reset) begin
+    always @(posedge clk or posedge reset) begin
         if (reset) begin
             rom_addr <= 0;
             ram_wraddr <= 0;
@@ -149,7 +167,7 @@ module rep_pixel(
                             if (linha == ALTURA - 1) begin
                                 linha <= 0;
                                 done <= 1;
-                                ram_wren <= 0; // Finaliza escrita
+                                ram_wren <= 0;
                             end else begin
                                 linha <= linha + 1;
                             end
@@ -163,14 +181,14 @@ module rep_pixel(
                     dj <= dj + 1;
                 end
             end else begin
-                ram_wren <= 0; // Mantém wren desativado após conclusão
+                ram_wren <= 0;
             end
         end
     end
 
 endmodule
 
-
+// Módulo de decimação
 module decimacao #(
     parameter FATOR = 2,
     parameter LARGURA = 160,
@@ -178,8 +196,8 @@ module decimacao #(
     parameter NEW_LARG = LARGURA / FATOR,
     parameter NEW_ALTURA = ALTURA / FATOR
 )(
-    input  wire clk,
-    input  wire rst,
+    input clk,
+    input rst,
     input [7:0] pixel_rom,
     output reg [18:0] rom_addr,
     output reg [18:0] addr_ram_vga,
@@ -188,39 +206,35 @@ module decimacao #(
 );
     
     reg [10:0] x_in, y_in;
-    reg [10:0] x_out, y_out;
-    
-    // Estados para controle
-    reg [1:0] estado_x, estado_y;
 
-	always @(posedge clk or negedge rst) begin
+    always @(posedge clk or posedge rst) begin
         if (rst) begin
-				  rom_addr     <= 0;
-				  addr_ram_vga <= 0;
-				  x_in         <= 0;
-				  y_in         <= 0;
-				  done         <= 0;
-				  pixel_saida  <= 0;
-			end else if (~done) begin
-				  // Endereço da ROM (entrada 160x120)
-				  rom_addr <= y_in * LARGURA + x_in;
+            rom_addr <= 0;
+            addr_ram_vga <= 0;
+            x_in <= 0;
+            y_in <= 0;
+            done <= 0;
+            pixel_saida <= 0;
+        end else if (~done) begin
+            // Endereço da ROM (entrada 160x120)
+            rom_addr <= y_in * LARGURA + x_in;
 
-				  // Mapeia para saída decimada (80x60)
-				  pixel_saida   <= pixel_rom;
-				  addr_ram_vga  <= (y_in / FATOR) * NEW_LARG + (x_in / FATOR);
+            // Mapeia para saída decimada (80x60)
+            pixel_saida <= pixel_rom;
+            addr_ram_vga <= (y_in / FATOR) * NEW_LARG + (x_in / FATOR);
 
-				  // Avança coordenadas da ROM, pulando FATOR em X
-				  if (x_in >= LARGURA - FATOR) begin
-						x_in <= 0;
-						if (y_in >= ALTURA - FATOR) begin
-							 y_in <= 0;
-							 done <= 1;  // terminou toda a imagem
-						end else begin
-							 y_in <= y_in + FATOR;  // pula linhas
-						end
-				  end else begin
-						x_in <= x_in + FATOR;  // pula colunas
-				  end
-			 end
-	end
-endmodule 
+            // Avança coordenadas da ROM, pulando FATOR em X
+            if (x_in >= LARGURA - FATOR) begin
+                x_in <= 0;
+                if (y_in >= ALTURA - FATOR) begin
+                    y_in <= 0;
+                    done <= 1;
+                end else begin
+                    y_in <= y_in + FATOR;
+                end
+            end else begin
+                x_in <= x_in + FATOR;
+            end
+        end
+    end
+endmodule
