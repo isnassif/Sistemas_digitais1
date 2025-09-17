@@ -1,85 +1,88 @@
-module rom_ram_med #(
+module mediablocos #(
     parameter LARGURA = 160,
     parameter ALTURA  = 120,
     parameter FATOR   = 2,
-    parameter NEW_LARG   = LARGURA * FATOR,
-    parameter NEW_ALTURA = ALTURA  * FATOR
+	 parameter NEW_LARG = LARGURA / FATOR,
+    parameter NEW_ALTURA = ALTURA  / FATOR
 )(
-    input wire clk_proc,
-    input wire reset_proc,
-    input wire switch,
-
-    output reg [18:0] rom_addr,
-    input wire [7:0] rom_data,
+    input clk,
+    input reset,
+    output wire [18:0] rom_addr,
+    input [7:0] rom_data,
     output reg [18:0] ram_wraddr,
     output reg [7:0] ram_data,
     output reg ram_wren,
     output reg done
 );
-
-   
-
-    // Contadores
-    reg [7:0] linha = 0;
-	 reg [8:0] coluna = 0; 
-	 reg [0:0] di = 0; 
-	 reg [0:0] dj = 0;
-	 reg [9:0] soma;
-
+    
+    reg [7:0] linha, di;
+    reg [8:0] coluna, dj;
+    reg [9:0] soma_bloco;
     reg [7:0] rom_data_reg;
+	 
 
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            linha <= 0; 
-				coluna <= 0;
-            di <= 0; 
-				dj <= 0;
-            ram_wren <= 0;
-            done <= 0;
-				soma <= 0;
+            linha <= 0; coluna <= 0; di <= 0; dj <= 0;
+            soma_bloco <= 0; rom_data_reg <= 0;
+            ram_wren <= 1'b0; done <= 1'b0;
+            
+				ram_wraddr <= 0;
         end else begin
-		      ram_wren <= 0;
-				rom_data_reg <= rom_data;
-				
-				if (!done) begin
-				   soma <= soma + rom_data_reg;
-				
-               if (di == FATOR-1 && dj == FATOR-1) begin
-	               ram_wren <= 1;
-		            ram_data <= (soma + rom_data_reg) >> 2;
-				
-		            ram_wraddr <= (linha/FATOR)*NEW_LARG + (coluna/FATOR);
-					   soma <= 0;
-					   
-					   if (coluna == LARGURA - FATOR) begin
-					      coluna <= 0;
-                     if (linha == ALTURA - FATOR)
-                        linha <= 0;
-                     else
-                        linha <= linha + FATOR;
-                     end else begin
-                         coluna <= coluna + FATOR;
-                         end	
-							  if (dj == FATOR-1) begin
-                          dj <= 0;
-                          di <= di + 1;
-                       end else begin
-                           dj <= dj + 1;
-                           end
-						end
-				  end
+            // Por padrão, a escrita na RAM está desligada
+            ram_wren <= 1'b0;
+            
+            // Sempre captura o dado que vem da ROM no registrador de pipeline
+            rom_data_reg <= rom_data;
+
+            if (!done) begin
+
+                // Verifica se estamos no último pixel do bloco
+                if (dj == FATOR - 1 && di == FATOR - 1) begin
+                    // Se sim, fazemos a ESCRITA e o AVANÇO do BLOCO
+                    ram_wren   <= 1'b1;
+                    ram_data   <= (soma_bloco + rom_data_reg) >> 2; // Usa o último pixel e divide
+                    ram_wraddr <= (linha / FATOR) * NEW_LARG + (coluna / FATOR);
+                    soma_bloco <= 0; // Zera a soma para o próximo bloco
+
+                    // Avança a "âncora" para o próximo bloco
+                    if (coluna == LARGURA - FATOR) begin
+                        coluna <= 0;
+                        if (linha == ALTURA - FATOR) begin
+                            linha <= 0; 
+                            done  <= 1'b1;
+                        end else begin
+                            linha <= linha + FATOR;
+                        end
+                    end else begin
+                        coluna <= coluna + FATOR;
+                    end
+                end else begin
+                    // Se não, apenas ACUMULAMOS a soma
+                    soma_bloco <= soma_bloco + rom_data_reg;
+                end
+
+                // O avanço DENTRO do bloco (di, dj) acontece a cada ciclo
+                if (dj == FATOR - 1) begin
+                    dj <= 0;
+                    di <= di + 1;
+                end else begin
+                    dj <= dj + 1;
+                end
             end
-           
+        end
     end
-	
-   always @(posedge clk) begin	
-        assign rom_addr <= (linha + di)*LARGURA + (coluna+dj);
-	end
+
+
+	assign rom_addr = (linha + di) * LARGURA + (coluna + dj);
+
 endmodule
 module mainv (
-    input  vga_reset,
-    input  clk_50MHz,
-    input  switch,       // 0 = original 160x120, 1 = ampliado 320x240
+    input vga_reset,
+    input clk_50MHz,
+    input switch,       // A porta do switch existe, mas não será usada na lógica interna
+
+    // Suas saídas originais
     output [9:0] next_x,
     output [9:0] next_y,
     output hsyncm,
@@ -92,78 +95,57 @@ module mainv (
     output clks
 );
 
-    // =========================
-    // CLOCK VGA 25 MHz
-    // =========================
+    // Clock VGA (25 MHz)
     reg clk_vga = 0;
-    always @(posedge clk_50MHz) clk_vga <= ~clk_vga;
-
-    // =========================
-    // PARÂMETROS IMAGEM
-    // =========================
-    parameter IMG_W     = 160;
-    parameter IMG_H     = 120;
-    parameter FATOR     = 2;
-    parameter IMG_W_AMP = IMG_W * FATOR; // 320
-    parameter IMG_H_AMP = IMG_H * FATOR; // 240
-
-    wire [9:0] img_w = (switch) ? IMG_W_AMP : IMG_W;
-    wire [9:0] img_h = (switch) ? IMG_H_AMP : IMG_H;
-    wire [9:0] x_offset = (640 - img_w)/2;
-    wire [9:0] y_offset = (480 - img_h)/2;
-
-    // =========================
-    // SINAIS VGA
-    // =========================
-    wire [9:0] nx, ny;
-    wire hsync, vsync, vblank;
+    always @(posedge clk_50MHz) begin
+        clk_vga <= ~clk_vga;
+    end
 
     // VGA driver
     vga_driver draw (
         .clock(clk_vga),
         .reset(vga_reset),
-        .color_in(8'd0),
-        .next_x(nx),
-        .next_y(ny),
-        .hsync(hsync),
-        .vsync(vsync),
+        .color_in(color_in),
+        .next_x(next_x),
+        .next_y(next_y),
+        .hsync(hsyncm),
+        .vsync(vsyncm),
         .sync(sync),
         .clk(clks),
-        .blank(vblank),
-        .red(),
-        .green(),
-        .blue()
+        .blank(blank),
+        .red(redm),
+        .green(greenm),
+        .blue(bluem)
     );
 
-    assign next_x = nx;
-    assign next_y = ny;
-    assign hsyncm = hsync;
-    assign vsyncm = vsync;
-    assign blank  = vblank;
+    // parâmetros da imagem ORIGINAL
+    parameter IMG_W = 160;
+    parameter IMG_H = 120;
+    
+    // parâmetros da imagem de SAÍDA (REDUZIDA PELA MÉDIA)
+    parameter FATOR = 2;
+    parameter IMG_W_SAIDA = IMG_W / FATOR;  // 80
+    parameter IMG_H_SAIDA = IMG_H / FATOR;  // 60
 
-    // =========================
-    // ENDEREÇO DA RAM PARA LEITURA
-    // =========================
+    // offsets para centralizar a imagem de SAÍDA (80x60)
+    wire [9:0] x_offset = (640 - IMG_W_SAIDA)/2;
+    wire [9:0] y_offset = (480 - IMG_H_SAIDA)/2;
+
+    // verifica se está dentro da área da imagem de SAÍDA
+    wire in_image = (next_x >= x_offset && next_x < x_offset + IMG_W_SAIDA) &&
+                    (next_y >= y_offset && next_y < y_offset + IMG_H_SAIDA);
+
+    // endereço da RAM (para leitura durante display)
     reg [18:0] addr_reg;
-    wire in_image = (nx >= x_offset && nx < x_offset + img_w) &&
-                    (ny >= y_offset && ny < y_offset + img_h);
-
     always @(posedge clk_vga) begin
-        if (in_image) begin
-            addr_reg <= (ny - y_offset) * img_w + (nx - x_offset);
-        end else begin
-            addr_reg <= 0;
-        end
+        if (in_image)
+            addr_reg <= (next_y - y_offset) * IMG_W_SAIDA + (next_x - x_offset);
+        else
+            addr_reg <= 0; // fora da imagem → fundo preto
     end
 
-    // =========================
-    // FRAMEBUFFER RAM
-    // =========================
+    // framebuffer RAM
     wire [7:0] c;
-    wire [18:0] wr_addr;
-    wire [7:0]  wr_data;
-    wire wr_en;
-
     ram2port framebuffer (
         .clock(clk_vga),
         .data(wr_data),
@@ -173,9 +155,7 @@ module mainv (
         .q(c)
     );
 
-    // =========================
-    // ROM (IMAGEM ORIGINAL)
-    // =========================
+    // ROM (imagem original)
     wire [7:0] rom_pixel;
     wire [18:0] rom_addr;
 
@@ -185,25 +165,15 @@ module mainv (
         .q(rom_pixel)
     );
 
-
-    reg switch_d = 0;
-    wire switch_changed = (switch != switch_d);
-
-    always @(posedge clk_vga) begin
-        switch_d <= switch;
-    end
-
-    wire copier_reset = vga_reset | switch_changed;
-
-    // =========================
-    // COPIADOR ROM → RAM COM AMPLIAÇÃO
-    // =========================
+    // processador ROM → RAM com média de blocos
+    wire [18:0] wr_addr;
+    wire [7:0] wr_data;
+    wire wr_en;
     wire copy_done;
 
-    rom_ram_med media_bloco (
-        .clk_proc(clk_vga),
-        .reset_proc(copier_reset),  // <<<< RESET AUTOMÁTICO
-        .switch(switch),
+    mediablocos media_proc (
+        .clk(clk_vga),
+        .reset(vga_reset),
         .rom_addr(rom_addr),
         .rom_data(rom_pixel),
         .ram_wraddr(wr_addr),
@@ -212,13 +182,8 @@ module mainv (
         .done(copy_done)
     );
 
-    // =========================
-    // COLOR IN
-    // =========================
-    wire [7:0] color_in = (in_image) ? c : 8'd0;
-
-    assign redm   = color_in;
-    assign greenm = color_in;
-    assign bluem  = color_in;
+    // Atribuindo o color_in para ser a cor do framebuffer ou preto fora da imagem
+    wire [7:0] color_in;
+    assign color_in = (in_image) ? c : 8'd0;
 
 endmodule
