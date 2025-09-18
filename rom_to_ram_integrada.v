@@ -176,11 +176,11 @@ module rom_to_ram (
                     reset_rep  <= 1'b1;
                     reset_dec  <= 1'b1;
                     reset_zoom <= 1'b1;
-                    rom_addr   <= 0;
-                    ram_wraddr <= 0;
-                    ram_data   <= 0;
-                    ram_wren   <= 0;
-                    done       <= 0;
+                    rom_addr   <= rom_addr_rep;
+                    ram_wraddr <= ram_wraddr_rep;
+                    ram_data   <= ram_data_rep;
+                    ram_wren   <= ram_wren_rep;
+                    done       <= done_rep;
 
                     // seleciona o próximo módulo
                     case(seletor)
