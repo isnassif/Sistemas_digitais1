@@ -94,11 +94,10 @@ module mediablocos #(
 
 endmodule
 
-
 module mainv (
     input vga_reset,
     input clk_50MHz,
-    input switch,       
+    input switch,      
 
     output [9:0] next_x,
     output [9:0] next_y,
@@ -112,6 +111,7 @@ module mainv (
     output clks
 );
 
+    // Clock VGA (25 MHz)
     reg clk_vga = 0;
     always @(posedge clk_50MHz) begin
         clk_vga <= ~clk_vga;
@@ -121,7 +121,7 @@ module mainv (
     vga_driver draw (
         .clock(clk_vga),
         .reset(vga_reset),
-        .color_in(color_in),
+        .color_in(color_in), // A lógica deste sinal será alterada
         .next_x(next_x),
         .next_y(next_y),
         .hsync(hsyncm),
@@ -134,62 +134,82 @@ module mainv (
         .blue(bluem)
     );
 
+    // Parâmetros da imagem ORIGINAL
     parameter IMG_W = 160;
     parameter IMG_H = 120;
     
+    // Parâmetros da imagem de SAÍDA (PROCESSADA)
     parameter FATOR = 2;
     parameter IMG_W_SAIDA = IMG_W / FATOR;  // 80
     parameter IMG_H_SAIDA = IMG_H / FATOR;  // 60
 
-    // offsets para centralizar a imagem de SAÍDA (80x60)
-    wire [9:0] x_offset = (640 - IMG_W_SAIDA)/2;
-    wire [9:0] y_offset = (480 - IMG_H_SAIDA)/2;
+    // --- LÓGICA PARA IMAGEM PROCESSADA (80x60) ---
+    wire [9:0] x_offset_proc = (640 - IMG_W_SAIDA) / 2;
+    wire [9:0] y_offset_proc = (480 - IMG_H_SAIDA) / 2;
+    wire in_image_proc = (next_x >= x_offset_proc && next_x < x_offset_proc + IMG_W_SAIDA) &&
+                         (next_y >= y_offset_proc && next_y < y_offset_proc + IMG_H_SAIDA);
 
-    // verifica se está dentro da área da imagem de SAÍDA
-    wire in_image = (next_x >= x_offset && next_x < x_offset + IMG_W_SAIDA) &&
-                    (next_y >= y_offset && next_y < y_offset + IMG_H_SAIDA);
-
-    // endereço da RAM (para leitura durante display)
-    reg [18:0] addr_reg;
+    reg [18:0] ram_rd_addr;
     always @(posedge clk_vga) begin
-        if (in_image)
-            addr_reg <= (next_y - y_offset) * IMG_W_SAIDA + (next_x - x_offset);
+        if (in_image_proc)
+            ram_rd_addr <= (next_y - y_offset_proc) * IMG_W_SAIDA + (next_x - x_offset_proc);
         else
-            addr_reg <= 0; // fora da imagem → fundo preto
+            ram_rd_addr <= 0;
     end
 
-    // framebuffer RAM
-    wire [7:0] c;
+    wire [7:0] processed_pixel;
     ram2port framebuffer (
         .clock(clk_vga),
         .data(wr_data),
-        .rdaddress(addr_reg),
+        .rdaddress(ram_rd_addr),
         .wraddress(wr_addr),
         .wren(wr_en),
-        .q(c)
+        .q(processed_pixel)
     );
+    
+    // --- LÓGICA PARA IMAGEM ORIGINAL (160x120) - NOVO ---
+    wire [9:0] x_offset_orig = (640 - IMG_W) / 2;
+    wire [9:0] y_offset_orig = (480 - IMG_H) / 2;
+    wire in_image_orig = (next_x >= x_offset_orig && next_x < x_offset_orig + IMG_W) &&
+                         (next_y >= y_offset_orig && next_y < y_offset_orig + IMG_H);
 
-    // ROM (imagem original)
-    wire [7:0] rom_pixel;
-    wire [18:0] rom_addr;
+    reg [18:0] rom_rd_addr_display;
+    always @(posedge clk_vga) begin
+        if (in_image_orig)
+            rom_rd_addr_display <= (next_y - y_offset_orig) * IMG_W + (next_x - x_offset_orig);
+        else
+            rom_rd_addr_display <= 0;
+    end
+    
 
-    mem rom_image (
-        .address(rom_addr),
+    // --- MÓDULOS DE MEMÓRIA ---
+
+    // ROM para o processador de média
+    wire [7:0] rom_pixel_proc;
+    wire [18:0] rom_addr_proc;
+    mem rom_image_proc (
+        .address(rom_addr_proc),
         .clock(clk_vga),
-        .q(rom_pixel)
+        .q(rom_pixel_proc)
     );
 
-    // processador ROM → RAM com média de blocos
+    // SEGUNDA INSTÂNCIA DA ROM para o display da imagem original - NOVO
+    wire [7:0] rom_pixel_display;
+    mem rom_image_display (
+        .address(rom_rd_addr_display),
+        .clock(clk_vga),
+        .q(rom_pixel_display)
+    );
+
     wire [18:0] wr_addr;
     wire [7:0] wr_data;
     wire wr_en;
     wire copy_done;
-
     mediablocos media_proc (
         .clk(clk_vga),
         .reset(vga_reset),
-        .rom_addr(rom_addr),
-        .rom_data(rom_pixel),
+        .rom_addr(rom_addr_proc),
+        .rom_data(rom_pixel_proc),
         .ram_wraddr(wr_addr),
         .ram_data(wr_data),
         .ram_wren(wr_en),
@@ -197,6 +217,10 @@ module mainv (
     );
 
     wire [7:0] color_in;
-    assign color_in = (in_image) ? c : 8'd0;
+    wire [7:0] final_processed_pixel = (in_image_proc) ? processed_pixel : 8'd0;
+    wire [7:0] final_original_pixel  = (in_image_orig) ? rom_pixel_display : 8'd0;
+
+    // O switch atua como um MUX: 0 para processado, 1 para original.
+    assign color_in = (switch == 1'b0) ? final_processed_pixel : final_original_pixel;
 
 endmodule
