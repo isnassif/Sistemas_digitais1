@@ -44,11 +44,10 @@ module mediablocos #(
             rom_data_reg <= rom_data;
 
             if (!done) begin
-                // 1. ACUMULAÇÃO: A soma acontece em todos os ciclos válidos.
+               
                 //    Usamos rom_data_reg, que é o dado do ciclo ANTERIOR, para manter a sincronia.
                 soma_bloco <= soma_bloco + rom_data_reg;
 
-                // 2. AVANÇO DOS PONTEIROS DENTRO DO BLOCO (di, dj)
                 //    Isso garante que vamos varrer o bloco 2x2 na ROM.
                 if (dj == FATOR - 1) begin
                     dj <= 0;
@@ -57,15 +56,11 @@ module mediablocos #(
                     dj <= dj + 1;
                 end
 
-                // 3. LÓGICA DE CONTROLE DO BLOCO
                 //    Verificamos se o bloco terminou usando o contador.
                 if (pixel_count == (FATOR * FATOR) - 1) begin
-                    // FIM DO BLOCO! Hora de escrever e avançar para o próximo.
                     
                     ram_wren <= 1'b1;
                     
-                    // Calcula a média. O 'soma_bloco' já contém a soma dos 3 pixels anteriores.
-                    // Somamos com o 'rom_data_reg' atual, que contém o 4º e último pixel do bloco.
                     ram_data <= (soma_bloco + rom_data_reg) >> 2; // >> 2 é o mesmo que dividir por 4
                     
                     ram_wraddr <= (linha / FATOR) * NEW_LARG + (coluna / FATOR);
@@ -73,7 +68,6 @@ module mediablocos #(
                     soma_bloco <= 0; // Zera a soma para o próximo bloco
                     pixel_count <= 0; // Zera o contador de pixels
 
-                    // AVANÇA A "ÂNCORA" PARA O PRÓXIMO BLOCO NA IMAGEM ORIGINAL
                     if (coluna == LARGURA - FATOR) begin
                         coluna <= 0;
                         if (linha == ALTURA - FATOR) begin
@@ -104,9 +98,8 @@ endmodule
 module mainv (
     input vga_reset,
     input clk_50MHz,
-    input switch,       // A porta do switch existe, mas não será usada na lógica interna
+    input switch,       
 
-    // Suas saídas originais
     output [9:0] next_x,
     output [9:0] next_y,
     output hsyncm,
@@ -119,7 +112,6 @@ module mainv (
     output clks
 );
 
-    // Clock VGA (25 MHz)
     reg clk_vga = 0;
     always @(posedge clk_50MHz) begin
         clk_vga <= ~clk_vga;
@@ -142,11 +134,9 @@ module mainv (
         .blue(bluem)
     );
 
-    // parâmetros da imagem ORIGINAL
     parameter IMG_W = 160;
     parameter IMG_H = 120;
     
-    // parâmetros da imagem de SAÍDA (REDUZIDA PELA MÉDIA)
     parameter FATOR = 2;
     parameter IMG_W_SAIDA = IMG_W / FATOR;  // 80
     parameter IMG_H_SAIDA = IMG_H / FATOR;  // 60
@@ -206,7 +196,6 @@ module mainv (
         .done(copy_done)
     );
 
-    // Atribuindo o color_in para ser a cor do framebuffer ou preto fora da imagem
     wire [7:0] color_in;
     assign color_in = (in_image) ? c : 8'd0;
 
