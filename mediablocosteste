@@ -1,82 +1,106 @@
 module mediablocos #(
-    parameter LARGURA = 160,
-    parameter ALTURA  = 120,
-    parameter FATOR   = 2,
-	 parameter NEW_LARG = LARGURA / FATOR,
+    parameter LARGURA    = 160,
+    parameter ALTURA     = 120,
+    parameter FATOR      = 2,
+    parameter NEW_LARG   = LARGURA / FATOR,
     parameter NEW_ALTURA = ALTURA  / FATOR
 )(
-    input clk,
-    input reset,
+    input              clk,
+    input              reset,
     output wire [18:0] rom_addr,
-    input [7:0] rom_data,
-    output reg [18:0] ram_wraddr,
-    output reg [7:0] ram_data,
-    output reg ram_wren,
-    output reg done
+    input       [7:0]  rom_data,
+    output reg  [18:0] ram_wraddr,
+    output reg  [7:0]  ram_data,
+    output reg         ram_wren,
+    output reg         done
 );
     
     reg [7:0] linha, di;
     reg [8:0] coluna, dj;
     reg [9:0] soma_bloco;
     reg [7:0] rom_data_reg;
-	 
+
+    
+    reg [1:0] pixel_count; 
+
+    // O assign para o rom_addr calcula o endereço de leitura na imagem original
+    assign rom_addr = (linha + di) * LARGURA + (coluna + dj);
 
     always @(posedge clk or posedge reset) begin
         if (reset) begin
-            linha <= 0; coluna <= 0; di <= 0; dj <= 0;
-            soma_bloco <= 0; rom_data_reg <= 0;
-            ram_wren <= 1'b0; done <= 1'b0;
-            
-				ram_wraddr <= 0;
+            linha        <= 0; 
+            coluna       <= 0; 
+            di           <= 0; 
+            dj           <= 0;
+            soma_bloco   <= 0;
+            rom_data_reg <= 0;
+            ram_wren     <= 1'b0;
+            done         <= 1'b0;
+            ram_wraddr   <= 0;
+            pixel_count  <= 0;
         end else begin
-            // Por padrão, a escrita na RAM está desligada
             ram_wren <= 1'b0;
-            
-            // Sempre captura o dado que vem da ROM no registrador de pipeline
+
             rom_data_reg <= rom_data;
 
             if (!done) begin
+                // 1. ACUMULAÇÃO: A soma acontece em todos os ciclos válidos.
+                //    Usamos rom_data_reg, que é o dado do ciclo ANTERIOR, para manter a sincronia.
+                soma_bloco <= soma_bloco + rom_data_reg;
 
-                // Verifica se estamos no último pixel do bloco
-                if (dj == FATOR - 1 && di == FATOR - 1) begin
-                    // Se sim, fazemos a ESCRITA e o AVANÇO do BLOCO
-                    ram_wren   <= 1'b1;
-                    ram_data   <= (soma_bloco + rom_data_reg) >> 2; // Usa o último pixel e divide
-                    ram_wraddr <= (linha / FATOR) * NEW_LARG + (coluna / FATOR);
-                    soma_bloco <= 0; // Zera a soma para o próximo bloco
-
-                    // Avança a "âncora" para o próximo bloco
-                    if (coluna == LARGURA - FATOR) begin
-                        coluna <= 0;
-                        if (linha == ALTURA - FATOR) begin
-                            linha <= 0; 
-                            done  <= 1'b1;
-                        end else begin
-                            linha <= linha + FATOR;
-                        end
-                    end else begin
-                        coluna <= coluna + FATOR;
-                    end
-                end else begin
-                    // Se não, apenas ACUMULAMOS a soma
-                    soma_bloco <= soma_bloco + rom_data_reg;
-                end
-
-                // O avanço DENTRO do bloco (di, dj) acontece a cada ciclo
+                // 2. AVANÇO DOS PONTEIROS DENTRO DO BLOCO (di, dj)
+                //    Isso garante que vamos varrer o bloco 2x2 na ROM.
                 if (dj == FATOR - 1) begin
                     dj <= 0;
                     di <= di + 1;
                 end else begin
                     dj <= dj + 1;
                 end
+
+                // 3. LÓGICA DE CONTROLE DO BLOCO
+                //    Verificamos se o bloco terminou usando o contador.
+                if (pixel_count == (FATOR * FATOR) - 1) begin
+                    // FIM DO BLOCO! Hora de escrever e avançar para o próximo.
+                    
+                    ram_wren <= 1'b1;
+                    
+                    // Calcula a média. O 'soma_bloco' já contém a soma dos 3 pixels anteriores.
+                    // Somamos com o 'rom_data_reg' atual, que contém o 4º e último pixel do bloco.
+                    ram_data <= (soma_bloco + rom_data_reg) >> 2; // >> 2 é o mesmo que dividir por 4
+                    
+                    ram_wraddr <= (linha / FATOR) * NEW_LARG + (coluna / FATOR);
+                    
+                    soma_bloco <= 0; // Zera a soma para o próximo bloco
+                    pixel_count <= 0; // Zera o contador de pixels
+
+                    // AVANÇA A "ÂNCORA" PARA O PRÓXIMO BLOCO NA IMAGEM ORIGINAL
+                    if (coluna == LARGURA - FATOR) begin
+                        coluna <= 0;
+                        if (linha == ALTURA - FATOR) begin
+                            linha <= 0;
+                            done <= 1'b1; // Acabou tudo!
+                        end else begin
+                            linha <= linha + FATOR;
+                        end
+                    end else begin
+                        coluna <= coluna + FATOR;
+                    end
+                    
+                    // Reseta os ponteiros internos para o início do próximo bloco
+                    di <= 0;
+                    dj <= 0;
+
+                end else begin
+                    // Se não for o fim do bloco, apenas incrementa o contador de pixels.
+                    pixel_count <= pixel_count + 1;
+                end
             end
         end
     end
 
-
-	assign rom_addr = (linha + di) * LARGURA + (coluna + dj);
-
 endmodule
+
+
 module mainv (
     input vga_reset,
     input clk_50MHz,
