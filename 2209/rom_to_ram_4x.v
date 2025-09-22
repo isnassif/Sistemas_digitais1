@@ -113,12 +113,25 @@ module rom_to_ram (
     decimacao dec_inst(
         .clk(clk),
         .rst(reset_dec),
+		  .fator(2),
         .pixel_rom(rom_data),
         .rom_addr(rom_addr_dec),
         .addr_ram_vga(ram_wraddr_dec),
         .pixel_saida(ram_data_dec),
         .done(done_dec)
     );
+	 
+	 decimacao dec_inst4(
+        .clk(clk),
+        .rst(reset_dec4),
+		  .fator(4),
+        .pixel_rom(rom_data),
+        .rom_addr(rom_addr_dec4),
+        .addr_ram_vga(ram_wraddr_dec4),
+        .pixel_saida(ram_data_dec4),
+        .done(done_dec4)
+    );
+
 
     zoom_nn zoom_inst(
         .clk(clk),
@@ -214,6 +227,7 @@ module rom_to_ram (
 								4'b0011: state <= ST_MEDIA;
                         4'b0100: state <= ST_COPIA_DIRETA;
 								4'b1000: state <= ST_REPLICACAO4;
+								4'b1001:state <= ST_DECIMACAO4;
                         default: state <= ST_RESET;
                     endcase
                 end
@@ -255,7 +269,7 @@ module rom_to_ram (
                 end
 
                 ST_DECIMACAO: begin
-                    reset_rep   <= 1'b1;
+                    reset_rep   <= 1'b0;
 						  reset_rep4   <= 1'b0;
                     reset_dec   <= 1'b1;
 						  reset_dec4   <= 1'b0;
@@ -271,6 +285,23 @@ module rom_to_ram (
 
                     if (seletor != 4'b0001) state <= ST_RESET;
                 end
+					 
+					 ST_DECIMACAO4: begin
+						  reset_rep   <= 1'b0;
+						  reset_rep4   <= 1'b0;
+                    reset_dec   <= 1'b0;
+						  reset_dec4   <= 1'b1;
+                    reset_zoom  <= 1'b0;
+						  reset_zoom4  <= 1'b0;
+                    reset_copia <= 1'b0;
+				  		  reset_med <= 1'b0;
+                    rom_addr    <= rom_addr_dec4;
+                    ram_wraddr  <= ram_wraddr_dec4;
+                    ram_data    <= ram_data_dec4;
+                    ram_wren    <= ~done_dec4; // continua escrevendo até terminar
+                    done        <= done_dec4;
+						  if (seletor != 4'b1001) state <= ST_RESET;
+					 end
 
                 ST_ZOOMNN: begin
                     reset_rep   <= 1'b0;
@@ -455,22 +486,22 @@ endmodule
     
 
 // Módulo de decimação
-module decimacao #(
-    parameter FATOR = 2,
-    parameter LARGURA = 160,
-    parameter ALTURA = 120,
-    parameter NEW_LARG = LARGURA / FATOR,
-    parameter NEW_ALTURA = ALTURA / FATOR
-)(
+module decimacao(
     input clk,
     input rst,
+	 input [2:0] fator,
     input [7:0] pixel_rom,
     output reg [18:0] rom_addr,
     output reg [18:0] addr_ram_vga,
     output reg [7:0] pixel_saida,
     output reg done
 );
-    
+
+	 parameter LARGURA = 160;
+    parameter ALTURA = 120;
+    wire [11:0] NEW_LARG = LARGURA / fator;
+    wire [11:0] NEW_ALTURA = ALTURA / fator;
+
     reg [10:0] x_in, y_in;
 
     always @(posedge clk or negedge rst) begin
@@ -487,19 +518,19 @@ module decimacao #(
 
             // Mapeia para saída decimada (80x60)
             pixel_saida <= pixel_rom;
-            addr_ram_vga <= (y_in / FATOR) * NEW_LARG + (x_in / FATOR);
+            addr_ram_vga <= (y_in / fator) * NEW_LARG + (x_in / fator);
 
             // Avança coordenadas da ROM, pulando FATOR em X
-            if (x_in >= LARGURA - FATOR) begin
+            if (x_in >= LARGURA - fator) begin
                 x_in <= 0;
-                if (y_in >= ALTURA - FATOR) begin
+                if (y_in >= ALTURA - fator) begin
                     y_in <= 0;
                     done <= 1;
                 end else begin
-                    y_in <= y_in + FATOR;
+                    y_in <= y_in + fator;
                 end
             end else begin
-                x_in <= x_in + FATOR;
+                x_in <= x_in + fator;
             end
         end
     end
