@@ -43,7 +43,8 @@ end
                         (sw_sync == 4'b0010) ? IMG_W*FATOR :   // zoom_nn (2x)
                         (sw_sync == 4'b0011) ? IMG_W/FATOR :
 								        (sw_sync == 4'b1001) ? IMG_W/FATOR :
-                        (sw_sync == 4'b1010) ? IMG_W*FATOR : 
+                        (sw_sync == 4'b1010) ? IMG_W*FATOR :
+						(sw_sync == 4'b1011) ? IMG_W/FATOR :
                         IMG_W;
 
    wire [9:0] IMG_H_AMP = (sw_sync == 4'b0000 ) ? IMG_H*FATOR :
@@ -53,6 +54,7 @@ end
                         (sw_sync == 4'b0011) ? IMG_H/FATOR :
 								        (sw_sync == 4'b1001) ? IMG_H/FATOR :
                         (sw_sync == 4'b1010) ? IMG_H*FATOR : 
+                        (sw_sync == 4'b1011) ? IMG_H/FATOR :
                         IMG_H;
     // Offsets
     reg [9:0] x_offset_reg, y_offset_reg;
