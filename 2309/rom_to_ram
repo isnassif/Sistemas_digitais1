@@ -71,6 +71,12 @@ module rom_to_ram (
     wire        ram_wren_med;
     wire        done_med;
 
+	 wire [18:0] rom_addr_med4;
+    wire [18:0] ram_wraddr_med4;
+    wire [7:0]  ram_data_med4;
+    wire        ram_wren_med4;
+    wire        done_med4;
+
     // Resets dedicados para cada submódulo (active-low)
     reg reset_rep;
     reg reset_rep4;
@@ -80,6 +86,8 @@ module rom_to_ram (
     reg reset_zoom4;
     reg reset_copia;
 	 reg reset_med;
+	reg reset_med4;
+
 
     // Instâncias dos submódulos
     rep_pixel rep_inst(
@@ -171,11 +179,22 @@ module rom_to_ram (
 	 media_blocos med_inst(
         .clk(clk),
         .reset(reset_med),
+		.fator(2),
         .pixel_rom(rom_data),
         .rom_addr(rom_addr_med),
         .ram_wraddr(ram_wraddr_med),
         .pixel_saida(ram_data_med),
         .done(done_med)
+    );
+	media_blocos med_inst4(
+        .clk(clk),
+        .reset(reset_med4),
+		.fator(4),
+        .pixel_rom(rom_data),
+        .rom_addr(rom_addr_med4),
+        .ram_wraddr(ram_wraddr_med4),
+        .pixel_saida(ram_data_med4),
+        .done(done_med4)
     );
 
     initial begin
@@ -194,6 +213,7 @@ module rom_to_ram (
 		  reset_zoom4 <= 1'b0;
         reset_copia <= 1'b0;
 		  reset_med <= 1'b0;
+		reset_med4 <= 1'b0;
     end
 
     always @(posedge clk or negedge reset) begin
@@ -213,6 +233,7 @@ module rom_to_ram (
 		      reset_zoom4 <= 1'b0;
             reset_copia <= 1'b0;
 		      reset_med <= 1'b0;
+			reset_med4 <= 1'b0;
         end else begin
             case(state)
 
@@ -226,6 +247,7 @@ module rom_to_ram (
 		              reset_zoom4 <= 1'b0;
                     reset_copia <= 1'b0;
 		              reset_med <= 1'b0;
+					reset_med4 <= 1'b0;
                     rom_addr    <= 0;
                     ram_wraddr  <= 0;
                     ram_data    <= 0;
@@ -237,11 +259,12 @@ module rom_to_ram (
                         4'b0000: state <= ST_REPLICACAO;
                         4'b0001: state <= ST_DECIMACAO;
                         4'b0010: state <= ST_ZOOMNN;
-								4'b0011: state <= ST_MEDIA;
+						4'b0011: state <= ST_MEDIA;
                         4'b0100: state <= ST_COPIA_DIRETA;
-								4'b1000: state <= ST_REPLICACAO4;
-								4'b1001:state <= ST_DECIMACAO4;
-								4'b1010: state <= ST_ZOOMNN;
+						4'b1000: state <= ST_REPLICACAO4;
+						4'b1001:state <= ST_DECIMACAO4;
+						4'b1010: state <= ST_ZOOMNN;
+						4'b1011: state <= ST_MEDIA4;
                         default: state <= ST_RESET;
                     endcase
                 end
@@ -255,6 +278,7 @@ module rom_to_ram (
 						  reset_zoom4  <= 1'b0;
                     reset_copia <= 1'b0;
 				  		  reset_med <= 1'b0;
+                    reset_med4 <= 1'b0;
                     rom_addr    <= rom_addr_rep;
                     ram_wraddr  <= ram_wraddr_rep;
                     ram_data    <= ram_data_rep;
@@ -273,6 +297,7 @@ module rom_to_ram (
 						  reset_zoom4  <= 1'b0;
                     reset_copia <= 1'b0;
 				  		  reset_med <= 1'b0;
+                    reset_med4 <= 1'b0;
                     rom_addr    <= rom_addr_rep4;
                     ram_wraddr  <= ram_wraddr_rep4;
                     ram_data    <= ram_data_rep4;
@@ -291,6 +316,7 @@ module rom_to_ram (
 						  reset_zoom4  <= 1'b0;
                     reset_copia <= 1'b0;
 				  		  reset_med <= 1'b0;
+                    reset_med4 <= 1'b0;
                     rom_addr    <= rom_addr_dec;
                     ram_wraddr  <= ram_wraddr_dec;
                     ram_data    <= ram_data_dec;
@@ -309,6 +335,7 @@ module rom_to_ram (
 						  reset_zoom4  <= 1'b0;
                     reset_copia <= 1'b0;
 				  		  reset_med <= 1'b0;
+                    reset_med4 <= 1'b0;
                     rom_addr    <= rom_addr_dec4;
                     ram_wraddr  <= ram_wraddr_dec4;
                     ram_data    <= ram_data_dec4;
@@ -326,6 +353,7 @@ module rom_to_ram (
 						  reset_zoom4  <= 1'b0;
                     reset_copia <= 1'b0;
 				  		  reset_med <= 1'b0;
+                    reset_med4 <= 1'b0;
                     rom_addr    <= rom_addr_zoom;
                     ram_wraddr  <= ram_wraddr_zoom;
                     ram_data    <= ram_data_zoom;
@@ -344,6 +372,7 @@ module rom_to_ram (
                     reset_zoom  <= 1'b0;
 						  reset_zoom4  <= 1'b1;
                     reset_copia <= 1'b0;
+					reset_med4 <= 1'b0;
 				  		  reset_med <= 1'b0;
                     rom_addr    <= rom_addr_zoom4;
                     ram_wraddr  <= ram_wraddr_zoom4;
@@ -354,7 +383,7 @@ module rom_to_ram (
                     if (seletor != 4'b1010) state <= ST_RESET;
                 end
 					 
-					 ST_MEDIA: begin
+				ST_MEDIA: begin
                     reset_rep   <= 1'b0;
 						  reset_rep4   <= 1'b0;
                     reset_dec   <= 1'b0;
@@ -363,6 +392,7 @@ module rom_to_ram (
 						  reset_zoom4  <= 1'b0;
                     reset_copia <= 1'b0;
 				  		  reset_med <= 1'b1;
+			        reset_med4 <= 1'b0;
                     rom_addr <= rom_addr_med; 
 						  ram_wraddr <= ram_wraddr_med; 
 						  ram_data <= ram_data_med; 
@@ -371,9 +401,28 @@ module rom_to_ram (
                     if (seletor != 4'b0011) state <= ST_RESET;
                 end
 
+				ST_MEDIA: begin
+                    reset_rep   <= 1'b0;
+					reset_rep4   <= 1'b0;
+                    reset_dec   <= 1'b0;
+					reset_dec4   <= 1'b0;
+                    reset_zoom  <= 1'b0;
+					reset_zoom4  <= 1'b0;
+                    reset_copia <= 1'b0;
+				  	reset_med <= 1'b0;
+					reset_med4 <= 1'b1;
+                    rom_addr <= rom_addr_med4; 
+					ram_wraddr <= ram_wraddr_med4; 
+			        ram_data <= ram_data_med4; 
+					ram_wren <= ~done_med4; 
+					done <= done_med4;
+                    if (seletor != 4'b0011) state <= ST_RESET;
+                end
+
                 ST_COPIA_DIRETA: begin
                     reset_rep   <= 1'b0;
-				  		  reset_med <= 1'b0;  
+				  		  reset_med <= 1'b0;
+                    reset_med4 <= 1'b0;
 						  reset_dec   <= 1'b0;
                     reset_zoom  <= 1'b0;
                     reset_copia <= 1'b1;
@@ -639,21 +688,23 @@ module zoom_nn(
     end
 endmodule
 
-module media_blocos #(
-    parameter FATOR = 2,
-    parameter LARGURA = 160,
-    parameter ALTURA = 120,
-    parameter NEW_LARG = LARGURA / FATOR,
-    parameter NEW_ALTURA = ALTURA / FATOR
-)(
-    input clk,
+module media_blocos (
+	input clk,
     input reset,
+	input [2:0]fator,
     input [7:0] pixel_rom,
     output reg [18:0] rom_addr,
     output reg [18:0] ram_wraddr,
     output reg [7:0] pixel_saida,
     output reg done
 );
+
+
+    parameter LARGURA = 160,
+    parameter ALTURA = 120,
+    wire NEW_LARG = LARGURA / FATOR,
+    parameter NEW_ALTURA = ALTURA / FATOR
+
 
     reg [10:0] bloco_x, bloco_y;
     reg [3:0] sub_x, sub_y;
@@ -677,13 +728,13 @@ module media_blocos #(
                 end
 
                 READ_BLOCK: begin
-                    rom_addr <= (bloco_y*FATOR + sub_y)*LARGURA + (bloco_x*FATOR + sub_x);
+                    rom_addr <= (bloco_y*fator + sub_y)*LARGURA + (bloco_x*fator + sub_x);
                     if (pixel_count > 0) soma_pixels <= soma_pixels + pixel_rom_reg;
                     pixel_count <= pixel_count + 1;
 
-                    if (sub_x >= FATOR-1) begin
+                    if (sub_x >= fator-1) begin
                         sub_x <= 0;
-                        if (sub_y >= FATOR-1) estado <= CALC_AVERAGE; else sub_y <= sub_y+1;
+                        if (sub_y >= fator-1) estado <= CALC_AVERAGE; else sub_y <= sub_y+1;
                     end else sub_x <= sub_x+1;
                 end
 
@@ -693,7 +744,7 @@ module media_blocos #(
                 end
 
                 WRITE_OUTPUT: begin
-                    if (FATOR == 2) pixel_saida <= soma_pixels >> 2;
+                    if (fator == 2 || fator == 4) pixel_saida <= soma_pixels >> 2;
                     else pixel_saida <= soma_pixels / (FATOR*FATOR);
 
                     ram_wraddr <= bloco_y*NEW_LARG + bloco_x;
