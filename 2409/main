@@ -107,7 +107,7 @@ end
 
     mem rom_image (
         .address(rom_addr),
-        .clock(clk_vga),
+        .clock(outclk_0),
         .q(rom_pixel)
     );
 
