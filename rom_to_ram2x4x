@@ -1,0 +1,509 @@
+module rom_to_ram (
+    input clk,
+    input reset,
+    input [3:0] seletor, // 0000..1011 conforme a tabela
+    output reg saida,
+    output reg [18:0] rom_addr,
+    input [7:0] rom_data,
+    output reg [18:0] ram_wraddr,
+    output reg [7:0] ram_data,
+    output reg ram_wren,
+    output reg done
+);
+
+    reg [3:0] state;
+    reg [2:0] fator;
+
+    parameter ST_RESET       = 4'd0,
+              ST_REPLICACAO  = 4'd1,
+              ST_DECIMACAO   = 4'd2,
+              ST_ZOOMNN      = 4'd3,
+              ST_MEDIA       = 4'd4,
+              ST_COPIA_DIRETA= 4'd5;
+
+    // Resets
+    reg reset_rep, reset_dec, reset_zoom, reset_copia, reset_med;
+
+    // Fios dos submódulos
+    wire [18:0] rom_addr_rep, rom_addr_dec, rom_addr_zoom, rom_addr_copia, rom_addr_med;
+    wire [18:0] ram_wraddr_rep, ram_wraddr_dec, ram_wraddr_zoom, ram_wraddr_copia, ram_wraddr_med;
+    wire [7:0]  ram_data_rep, ram_data_dec, ram_data_zoom, ram_data_copia, ram_data_med;
+    wire        ram_wren_rep, ram_wren_zoom, ram_wren_copia, ram_wren_med;
+    wire        done_rep, done_dec, done_zoom, done_copia, done_med;
+
+    // Submódulos instanciados com fator dinâmico
+    rep_pixel rep_inst (
+        .clk(clk),
+        .reset(reset_rep),
+        .fator(fator),
+        .rom_addr(rom_addr_rep),
+        .rom_data(rom_data),
+        .ram_wraddr(ram_wraddr_rep),
+        .ram_data(ram_data_rep),
+        .ram_wren(ram_wren_rep),
+        .done(done_rep)
+    );
+
+    decimacao dec_inst (
+        .clk(clk),
+        .rst(reset_dec),
+        .fator(fator),
+        .pixel_rom(rom_data),
+        .rom_addr(rom_addr_dec),
+        .addr_ram_vga(ram_wraddr_dec),
+        .pixel_saida(ram_data_dec),
+        .done(done_dec)
+    );
+
+    zoom_nn zoom_inst (
+        .clk(clk),
+        .reset(reset_zoom),
+        .fator(fator),
+        .rom_addr(rom_addr_zoom),
+        .rom_data(rom_data),
+        .ram_wraddr(ram_wraddr_zoom),
+        .ram_data(ram_data_zoom),
+        .ram_wren(ram_wren_zoom),
+        .done(done_zoom)
+    );
+
+    media_blocos med_inst (
+        .clk(clk),
+        .reset(reset_med),
+        .fator(fator),
+        .pixel_rom(rom_data),
+        .rom_addr(rom_addr_med),
+        .ram_wraddr(ram_wraddr_med),
+        .pixel_saida(ram_data_med),
+        .done(done_med)
+    );
+
+    copia_direta copia_inst (
+        .clk(clk),
+        .reset(reset_copia),
+        .rom_addr(rom_addr_copia),
+        .rom_data(rom_data),
+        .ram_wraddr(ram_wraddr_copia),
+        .ram_data(ram_data_copia),
+        .ram_wren(ram_wren_copia),
+        .done(done_copia)
+    );
+
+    initial begin
+        state <= ST_RESET;
+        saida <= 0;
+        rom_addr <= 0;
+        ram_wraddr <= 0;
+        ram_data <= 0;
+        ram_wren <= 0;
+        done <= 0;
+        fator <= 2;
+
+        reset_rep <= 0;
+        reset_dec <= 0;
+        reset_zoom <= 0;
+        reset_copia <= 0;
+        reset_med <= 0;
+    end
+
+    always @(posedge clk or negedge reset) begin
+        if (!reset) begin
+            state <= ST_RESET;
+            saida <= 0;
+            rom_addr <= 0;
+            ram_wraddr <= 0;
+            ram_data <= 0;
+            ram_wren <= 0;
+            done <= 0;
+            fator <= 2;
+
+            reset_rep <= 0;
+            reset_dec <= 0;
+            reset_zoom <= 0;
+            reset_copia <= 0;
+            reset_med <= 0;
+        end else begin
+            case (state)
+
+                ST_RESET: begin
+                    reset_rep <= 0; reset_dec <= 0; reset_zoom <= 0; reset_copia <= 0; reset_med <= 0;
+                    rom_addr <= 0; ram_wraddr <= 0; ram_data <= 0; ram_wren <= 0; done <= 0;
+
+                    case(seletor)
+                        4'b0000: begin fator <= 3'd2; state <= ST_REPLICACAO; end
+                        4'b0001: begin fator <= 3'd2; state <= ST_DECIMACAO; end
+                        4'b0010: begin fator <= 3'd2; state <= ST_ZOOMNN;    end
+                        4'b0011: begin fator <= 3'd2; state <= ST_MEDIA;     end
+                        4'b0100: begin fator <= 3'd1; state <= ST_COPIA_DIRETA; end
+                        4'b1000: begin fator <= 3'd4; state <= ST_REPLICACAO; end
+                        4'b1001: begin fator <= 3'd4; state <= ST_DECIMACAO; end
+                        4'b1010: begin fator <= 3'd4; state <= ST_ZOOMNN;    end
+                        4'b1011: begin fator <= 3'd4; state <= ST_MEDIA;     end
+                        default: state <= ST_RESET;
+                    endcase
+                end
+
+                ST_REPLICACAO: begin
+                    reset_rep <= 1; reset_dec <= 0; reset_zoom <= 0; reset_copia <= 0; reset_med <= 0;
+                    rom_addr <= rom_addr_rep;
+                    ram_wraddr <= ram_wraddr_rep;
+                    ram_data <= ram_data_rep;
+                    ram_wren <= ram_wren_rep;
+                    done <= done_rep;
+                    if (done_rep || seletor != 4'b0000 && seletor != 4'b1000) state <= ST_RESET;
+                end
+
+                ST_DECIMACAO: begin
+                    reset_rep <= 0; reset_dec <= 1; reset_zoom <= 0; reset_copia <= 0; reset_med <= 0;
+                    rom_addr <= rom_addr_dec;
+                    ram_wraddr <= ram_wraddr_dec;
+                    ram_data <= ram_data_dec;
+                    ram_wren <= ~done_dec;
+                    done <= done_dec;
+                    if (done_dec || seletor != 4'b0001 && seletor != 4'b1001) state <= ST_RESET;
+                end
+
+                ST_ZOOMNN: begin
+                    reset_rep <= 0; reset_dec <= 0; reset_zoom <= 1; reset_copia <= 0; reset_med <= 0;
+                    rom_addr <= rom_addr_zoom;
+                    ram_wraddr <= ram_wraddr_zoom;
+                    ram_data <= ram_data_zoom;
+                    ram_wren <= ram_wren_zoom;
+                    done <= done_zoom;
+                    if (done_zoom || seletor != 4'b0010 && seletor != 4'b1010) state <= ST_RESET;
+                end
+
+                ST_MEDIA: begin
+                    reset_rep <= 0; reset_dec <= 0; reset_zoom <= 0; reset_copia <= 0; reset_med <= 1;
+                    rom_addr <= rom_addr_med;
+                    ram_wraddr <= ram_wraddr_med;
+                    ram_data <= ram_data_med;
+                    ram_wren <= ~done_med;
+                    done <= done_med;
+                    if (done_med || seletor != 4'b0011 && seletor != 4'b1011) state <= ST_RESET;
+                end
+
+                ST_COPIA_DIRETA: begin
+                    reset_rep <= 0; reset_dec <= 0; reset_zoom <= 0; reset_copia <= 1; reset_med <= 0;
+                    rom_addr <= rom_addr_copia;
+                    ram_wraddr <= ram_wraddr_copia;
+                    ram_data <= ram_data_copia;
+                    ram_wren <= ram_wren_copia;
+                    done <= done_copia;
+                    if (done_copia || seletor != 4'b0100) state <= ST_RESET;
+                end
+
+                default: state <= ST_RESET;
+
+            endcase
+        end
+    end
+
+endmodule
+
+module copia_direta (
+    input clk,
+    input reset,
+    output reg [18:0] rom_addr,
+    input [7:0] rom_data,
+    output reg [18:0] ram_wraddr,
+    output reg [7:0] ram_data,
+    output reg ram_wren,
+    output reg done
+);
+
+    parameter TOTAL_PIXELS = 160*120; // pixels da ROM
+
+    reg [18:0] counter;
+    reg [7:0] rom_data_reg;
+
+    always @(posedge clk or negedge reset) begin
+        if (!reset) begin
+            counter <= 0;
+            rom_addr <= 0;
+            ram_wraddr <= 0;
+            ram_data <= 0;
+            ram_wren <= 0;
+            done <= 0;
+            rom_data_reg <= 0;
+        end else begin
+            rom_data_reg <= rom_data; // pega dado com 1 ciclo de atraso
+
+            if (counter < TOTAL_PIXELS) begin
+                rom_addr   <= counter;
+                ram_wraddr <= counter;
+                ram_data   <= rom_data_reg;
+                ram_wren   <= 1;
+                counter    <= counter + 1;
+            end else begin
+                ram_wren <= 0;
+                done <= 1;
+            end
+        end
+    end
+endmodule
+
+module rep_pixel (
+    input clk,
+    input reset,
+    input [2:0] fator,
+    output reg [18:0] rom_addr,
+    input [7:0] rom_data,
+    output reg [18:0] ram_wraddr,
+    output reg [7:0] ram_data,
+    output reg ram_wren,
+    output reg done
+);
+    parameter LARGURA = 160;
+    parameter ALTURA = 120;
+
+    reg [10:0] linha, coluna, di, dj;
+    reg [7:0] rom_data_reg;
+    reg [18:0] new_largura;
+
+    always @(posedge clk or negedge reset) begin
+        if (!reset) begin
+            rom_addr <= 0; 
+				ram_wraddr <= 0; 
+				ram_data <= 0; 
+				ram_wren <= 0;
+            done <= 0; 
+				linha <= 0; 
+				coluna <= 0; 
+				di <= 0; 
+				dj <= 0;
+            rom_data_reg <= 0; 
+				new_largura <= 0;
+        end else begin
+            rom_data_reg <= rom_data;
+            new_largura <= LARGURA * fator;
+
+            if (!done) begin
+                rom_addr <= linha * LARGURA + coluna;
+                ram_wraddr <= (linha * fator + di) * new_largura + (coluna * fator + dj);
+                ram_data <= rom_data_reg;
+                ram_wren <= 1;
+
+                if (dj == fator - 1) begin
+                    dj <= 0;
+                    if (di == fator - 1) begin
+                        di <= 0;
+                        if (coluna == LARGURA - 1) begin
+                            coluna <= 0;
+                            if (linha == ALTURA - 1) begin
+                                done <= 1;
+                                ram_wren <= 0;
+                            end else begin
+                                linha <= linha + 1;
+                            end
+                        end else begin
+                            coluna <= coluna + 1;
+                        end
+                    end else begin
+                        di <= di + 1;
+                    end
+                end else begin
+                    dj <= dj + 1;
+                end
+            end else begin
+                ram_wren <= 0;
+            end
+        end
+    end
+endmodule
+
+
+module decimacao (
+    input clk,
+    input rst,
+    input [2:0] fator,
+    input [7:0] pixel_rom,
+    output reg [18:0] rom_addr,
+    output reg [18:0] addr_ram_vga,
+    output reg [7:0] pixel_saida,
+    output reg done
+);
+    parameter LARGURA = 160;
+    parameter ALTURA = 120;
+
+    reg [10:0] x_in, y_in;
+
+    always @(posedge clk or negedge rst) begin
+        if (!rst) begin
+            rom_addr <= 0; addr_ram_vga <= 0; x_in <= 0; y_in <= 0;
+            done <= 0; pixel_saida <= 0;
+        end else if (~done) begin
+            rom_addr <= y_in * LARGURA + x_in;
+            pixel_saida <= pixel_rom;
+            addr_ram_vga <= (y_in / fator) * (LARGURA / fator) + (x_in / fator);
+
+            if (x_in >= LARGURA - fator) begin
+                x_in <= 0;
+                if (y_in >= ALTURA - fator) begin
+                    y_in <= 0;
+                    done <= 1;
+                end else begin
+                    y_in <= y_in + fator;
+                end
+            end else begin
+                x_in <= x_in + fator;
+            end
+        end
+    end
+endmodule
+
+module zoom_nn (
+    input clk,
+    input reset,
+    input [2:0] fator,
+    output reg [18:0] rom_addr,
+    input [7:0] rom_data,
+    output reg [18:0] ram_wraddr,
+    output reg [7:0] ram_data,
+    output reg ram_wren,
+    output reg done
+);
+    parameter LARGURA = 160;
+    parameter ALTURA = 120;
+
+    reg [7:0] rom_data_reg;
+    reg [10:0] linha, coluna, di, dj;
+    reg [18:0] new_largura;
+
+    always @(posedge clk or negedge reset) begin
+        if (!reset) begin
+            linha <= 0; coluna <= 0; di <= 0; dj <= 0;
+            rom_addr <= 0; ram_wraddr <= 0; rom_data_reg <= 0; ram_data <= 0;
+            ram_wren <= 0; done <= 0;
+        end else begin
+            rom_data_reg <= rom_data;
+            new_largura <= LARGURA * fator;
+
+            if (!done) begin
+                if (di == 0 && dj == 0)
+                    rom_addr <= linha * LARGURA + coluna;
+
+                ram_data <= rom_data_reg;
+                ram_wraddr <= (linha * fator + di) * new_largura + (coluna * fator + dj);
+                ram_wren <= 1;
+
+                if (dj == fator - 1) begin
+                    dj <= 0;
+                    if (di == fator - 1) begin
+                        di <= 0;
+                        if (coluna == LARGURA - 1) begin
+                            coluna <= 0;
+                            if (linha == ALTURA - 1) begin
+                                done <= 1;
+                            end else begin
+                                linha <= linha + 1;
+                            end
+                        end else begin
+                            coluna <= coluna + 1;
+                        end
+                    end else begin
+                        di <= di + 1;
+                    end
+                end else begin
+                    dj <= dj + 1;
+                end
+            end else begin
+                ram_wren <= 0;
+            end
+        end
+    end
+endmodule
+
+module media_blocos (
+    input clk,
+    input reset,
+    input [2:0] fator,
+    input [7:0] pixel_rom,
+    output reg [18:0] rom_addr,
+    output reg [18:0] ram_wraddr,
+    output reg [7:0] pixel_saida,
+    output reg done
+);
+    parameter LARGURA = 160;
+    parameter ALTURA = 120;
+
+    reg [10:0] bloco_x, bloco_y;
+    reg [3:0] sub_x, sub_y;
+    reg [15:0] soma_pixels;
+    reg [3:0] pixel_count;
+    reg [1:0] estado;
+    reg [7:0] pixel_rom_reg;
+
+    reg [18:0] new_largura;
+
+    localparam IDLE = 2'b00, READ_BLOCK = 2'b01, CALC_AVERAGE = 2'b10, WRITE_OUTPUT = 2'b11;
+
+    always @(posedge clk or negedge reset) begin
+        if (!reset) begin
+            rom_addr <= 0; ram_wraddr <= 0; pixel_saida <= 0; done <= 0;
+            bloco_x <= 0; bloco_y <= 0; sub_x <= 0; sub_y <= 0;
+            soma_pixels <= 0; pixel_count <= 0; estado <= IDLE;
+            pixel_rom_reg <= 0;
+            new_largura <= 0;
+        end else begin
+            pixel_rom_reg <= pixel_rom;
+            new_largura <= LARGURA / fator;
+
+            case(estado)
+                IDLE: begin
+                    soma_pixels <= 0; pixel_count <= 0; sub_x <= 0; sub_y <= 0; estado <= READ_BLOCK;
+                end
+
+                READ_BLOCK: begin
+                    rom_addr <= (bloco_y * fator + sub_y) * LARGURA + (bloco_x * fator + sub_x);
+                    if (pixel_count > 0)
+                        soma_pixels <= soma_pixels + pixel_rom_reg;
+                    pixel_count <= pixel_count + 1;
+
+                    if (sub_x >= fator - 1) begin
+                        sub_x <= 0;
+                        if (sub_y >= fator - 1)
+                            estado <= CALC_AVERAGE;
+                        else
+                            sub_y <= sub_y + 1;
+                    end else begin
+                        sub_x <= sub_x + 1;
+                    end
+                end
+
+                CALC_AVERAGE: begin
+                    soma_pixels <= soma_pixels + pixel_rom_reg;
+                    estado <= WRITE_OUTPUT;
+                end
+
+                WRITE_OUTPUT: begin
+                    case (fator)
+                        1: pixel_saida <= soma_pixels;
+                        2: pixel_saida <= soma_pixels >> 2;
+                        3: pixel_saida <= soma_pixels / 9;
+                        4: pixel_saida <= soma_pixels >> 4;
+                        default: pixel_saida <= soma_pixels / (fator * fator);
+                    endcase
+
+                    ram_wraddr <= bloco_y * new_largura + bloco_x;
+
+                    if (bloco_x >= new_largura - 1) begin
+                        bloco_x <= 0;
+                        if (bloco_y >= (ALTURA / fator) - 1) begin
+                            bloco_y <= 0; done <= 1; estado <= IDLE;
+                        end else begin
+                            bloco_y <= bloco_y + 1;
+                            estado <= READ_BLOCK;
+                        end
+                    end else begin
+                        bloco_x <= bloco_x + 1;
+                        estado <= READ_BLOCK;
+                    end
+
+                    soma_pixels <= 0; pixel_count <= 0; sub_x <= 0; sub_y <= 0;
+                end
+            endcase
+        end
+    end
+endmodule
+
