@@ -5,13 +5,13 @@
 Esse projeto tem o objetivo de implementar um coprocessador gráfico para realizar, em tempo real, redimensionamento de imagens gerando sobre elas efeitos de Zoom-In e Zoom-Out. Esse processo foi feito utilizando o kit de desenvolvimento DE1-SoC, que contém um coprocessador Cyclone V. O sistema aplica técnicas que buscam variar o dimensionamento de imagens em escala de cinza, com representação de pixels em 8 bits, e exibe o resultado via saída VGA. O ambiente de desenvolvimento utilizado foi o Intel Quartus Prime Lite 23.1, e a linguagem de descrição de hardware usada foi o Verilog.
 
 
-
+</p>
 O coprocessador gráfico conseguiu fazer o redimensionamento de imagens a partir dos seguintes algoritmos:
-a) Replicação de pixel(Zoom-In)
-b) Vizinho mais próximo(Zoom-In)
-c) Decimação(Zoom-Out)
-d) Média de blocos(Zoom-Out)
-Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imagem possa ocorrer em 2x.
+<p>a) Replicação de pixel(Zoom-In)</p>
+<p>b) Vizinho mais próximo(Zoom-In)</p>
+<p>c) Decimação(Zoom-Out)</p>
+<p>d) Média de blocos(Zoom-Out)</p>
+<p>Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imagem possa ocorrer em 2x.</p>
 
 
 
@@ -119,4 +119,9 @@ A Unidade de Controle, é implementada no módulo control_unity e funciona como 
 </p>
 <p>
     Cada pixel guarda a informação do nível de cinza em 8 bits e ao aplicar operações sobre eles podemos reduzir, ampliar ou transformar a imagem.
+</p>
+<h3>Replicação de pixel(Zoom-In)</h3>
+<p>#### &#8594; <strong>Funcionamento</strong></p>
+<p>
+    A replicação de pixel é um algoritmo de redimensionamento matricial que aumenta as dimensões da matriz. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-in. Na replicação de pixel criamos novos pixels a partir dos pixels já fornecidos, cada pixel é replicado neste método fator vezes linha e coluna, conseguindo dessa forma uma imagem ampliada. De maneira geral, essa operação de replicação é feita inicialmente de maneira horizontal(linhas replicadas) e depois verticalmente(colunas replicadas).
 </p>
