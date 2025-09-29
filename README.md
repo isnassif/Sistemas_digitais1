@@ -17,6 +17,7 @@ Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imag
 
 <h2 id="arquitetura">Arquitetura e Caminho de Dados</h2>
 
+![Diagrama da Arquitetura Geral](diagramas/arquiteturageral.png)
 
 
 
