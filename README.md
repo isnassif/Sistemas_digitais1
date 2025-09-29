@@ -32,7 +32,7 @@ Sumário
 <h3>Componentes Principais</h3>
 <ul>
     <li>
-        <strong>Unidade de Controle (<code>rom_to_ram</code>)</strong>:  
+        <strong>ULA (<code>ULA</code>)</strong>:  
         FSM hierárquica que gerencia o fluxo do sistema. Com base nas entradas do usuário e nos sinais de status (<code>done</code>) dos submódulos, gera sinais de controle para ativar aceleradores de hardware, gerar endereços para a ROM e controlar escrita no Framebuffer.
     </li>
     <li>
@@ -44,7 +44,7 @@ Sumário
         Armazena a imagem original de 160x120 pixels em escala de cinza. A Unidade de Controle lê os pixels sequencialmente e fornece aos módulos de algoritmo para processamento.
     </li>
     <li>
-        <strong>Módulos de Algoritmo</strong>:  
+        <strong>Módulos dos Algoritmos</strong>:  
         Circuits dedicados (<code>rep_pixel</code>, <code>copia_direta</code>, <code>zoom</code>, <code>media_blocos</code>) que processam pixels de forma paralela e otimizada. Alguns módulos operam em um ciclo, enquanto outros têm FSM interna para cálculos mais complexos, garantido mais eficiência na execução das operações.
     </li>
 </ul>
