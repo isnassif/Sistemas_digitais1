@@ -69,6 +69,41 @@ Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imag
   ![Diagrama da Arquitetura Geral](diagramas/arquiteturageral.png)
 
 
+<h2 id="control">Unidade de Controle</h2>
+<p>
+A Unidade de Controle, é implementada no módulo control_unity e funciona como o elemento principal do projeto, ela é responsável por coordenar todo o fluxo do sistema, começando pela instanciação de todos os componentes principais, como as memórias ROM e RAM e a ALU, coordenação e geração do clock utilizado, sincronismo das chaves utilizadas, ativação dos algoritmos de redimensionamento e escrita ordenada no Framebuffer, com um resultado final exibido pelo driver VGA, a seguir, será explicado de forma detalhada e minunciosa o funcionamento de cada um dos componentes do módulo.
+</p>
+
+<h3>Funções Principais</h3>
+<ul>
+  <li><strong>Geração e Distribuição de Clocks:</strong>  
+      Através da ferramente "IP catalog", disponível na IDE Quartus (utiliada para o desenvolvimento do projeto), foi criado um PLL para fornecer um clock estável aos blocos de memória, o que fornece uma valor preciso para os módulos principais.</li>
+  <li><strong>Sincronização de Entradas:</strong>  
+      As chaves sw são sincronizadas em registradores para evitar metastabilidade. Esses sinais determinam o modo de operação (replicação, decimação, zoom por vizinho mais próximo ou cópia direta).</li>
+  <li><strong>Centralização e Endereçamento:</strong>  
+      Calcula dinamicamente x_offset e y_offset, sinais do vga_driver, para centralizar a imagem na tela de 640×480, utilizada para desenvolvimento do projeto, esses sinais, geram o endereço do Framebuffer para cada pixel válido.</li>
+  <li><strong>Controle da FSM:</strong>  
+      A FSM do módulo de controle coordena a leitura de pixels da ROM, aciona o módulo de algoritmo selecionado e controla os sinais de escrita na RAM, permitindo com que o projeto funcione da melhor forma.</li>
+</ul>
+
+<h3>Fluxo Operacional</h3>
+<p>
+    Nessa seção, falaremos sobre toda a parte operacional do funcionamento da Unidade de Controle, que segue uma sequência bem definida de etapas. Inicialmente, assim que o sinal vga_reset é acionado, o sistema entra no estado de RESET. Nesse momento, são realizados os ajustes iniciais, incluindo a configuração dos fatores de escala de acordo com a opção escolhida pelo usuário por meio das chaves de entrada. Com a configuração concluída, o sistema passa para a fase de leitura sequencial da ROM. Aqui, o endereço rom_addr é continuamente incrementado, percorrendo toda a imagem original armazenada, que possui resolução de 160×120 pixels. Cada pixel lido é então encaminhado para o módulo de algoritmo responsável pelo redimensionamento.
+</p>
+
+<p>
+    A etapa de redimensionamento é basicamente é o processamento do pixel pelo algoritmo selecionado, vale ressaltar que a escolha do modo de operação depende do código de controle gerado a partir das chaves. Assim, o pixel pode ser replicado, reduzido, interpolado ou simplesmente copiado de forma direta - Por exemplo, no modo de replicação ×2, cada pixel proveniente da ROM é expandido em quatro pixels consecutivos que serão gravados no framebuffer- Após o processamento, leitura e aplicação dos algoritmos, ocorre a escrita na RAM dual-port, que funciona como framebuffer. A posição de memória correta é calculada a partir do registrador de endereço addr_reg, levando em conta tanto a ampliação ou redução da imagem quanto os deslocamentos necessários para centralização. O sinal de controle ram_wren garante que a escrita ocorra apenas em ciclos válidos, evitando sobreposição ou perda de dados.
+</p>
+
+<p>
+    A unidade de controle também controla o módulo vga_drive, que será explicado posteriormente. Esse fluxo coordenado garante que cada etapa — desde a leitura da ROM até a exibição final pelo VGA — seja sincronizada e controlada pela Unidade de Controle, assegurando o funcionamento estável do sistema.
+</p>
+
+<h2>Exemplo de Operação</h2>
+<p>
+    Para que o funcionamento fique ainda mais claro, vamos para um exemplo prático. Suponha que o usuário configure as chaves de entrada em 0000, selecionando o modo de replicação ×2. Se isso acontecer, a Unidade de Controle ajusta automaticamente os parâmetros de escala, definindo IMG_W_AMP = 320 e IMG_H_AMP = 240. Em seguida, são calculados os deslocamentos x_offset = 160 e y_offset = 120, garantindo que a imagem seja centralizada na resolução de saída de 640×480. Durante o processamento, cada pixel lido da ROM é replicado em quatro posições consecutivas da RAM, produzindo uma imagem ampliada sem perda de continuidade. O driver VGA, por sua vez, lê esses dados do framebuffer e exibe na tela uma imagem com resolução de 320×240 pixels, devidamente posicionada no centro do display de 640×480.
+</p>
+
 
 
 
