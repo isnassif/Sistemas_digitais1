@@ -4,6 +4,8 @@
 <p>
 Esse projeto tem o objetivo de implementar um coprocessador gráfico para realizar, em tempo real, redimensionamento de imagens gerando sobre elas efeitos de Zoom-In e Zoom-Out. Esse processo foi feito utilizando o kit de desenvolvimento DE1-SoC, que contém um coprocessador Cyclone V. O sistema aplica técnicas que buscam variar o dimensionamento de imagens em escala de cinza, com representação de pixels em 8 bits, e exibe o resultado via saída VGA. O ambiente de desenvolvimento utilizado foi o Intel Quartus Prime Lite 23.1, e a linguagem de descrição de hardware usada foi o Verilog.
 
+    
+
 
 </p>
 O coprocessador gráfico conseguiu fazer o redimensionamento de imagens a partir dos seguintes algoritmos:
@@ -13,10 +15,13 @@ O coprocessador gráfico conseguiu fazer o redimensionamento de imagens a partir
 <p>d) Média de blocos(Zoom-Out)</p>
 <p>Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imagem possa ocorrer em 2x.</p>
 
+Sumário
+=================
+- [Arquitetura e Caminho de Dados](#arquitetura-e-caminho-de-dados)
 
 
 
-<h2 id="arquitetura">Arquitetura e Caminho de Dados</h2>
+## Arquitetura e Caminho de Dados
 
 <p>
     O sistema segue o princípio de <strong>separação de funções</strong>, dividindo o design em <strong>Unidade de Controle</strong> (Control Path) e <strong>Datapath</strong>. Essa abordagem modular facilita a validação isolada de cada componente e permite que ferramentas de síntese otimizem cada parte de forma eficiente. Nesse tópico será abordada a arquitetura adotada no desenvolvimento do protótipo.
