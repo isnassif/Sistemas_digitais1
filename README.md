@@ -132,3 +132,34 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
 </p>
 <p>ram_wraddr = (linha * fator + di) * NEW_LARG + (coluna * fator + dj)</p>
 <p>Assim, cada pixel é replicado <strong>fator x fator</strong> vezes, gerando uma imagem ampliada.</p>
+
+<h3>Decimação(Zoom-Out)</h3>
+<p> <strong>Funcionamento geral</strong></p>
+<p>
+    A decimação é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. O princípio da decimação é o descarte de pixels. O algoritmo percorre a imagem, armazena um pixel de referência e, em seguida, só considera para armazenamento os pixels localizados a uma distância definida pelo <strong>fator</strong>, tanto no eixo horizontal quanto no vertical.
+</p>
+<p>
+    Dessa forma, a imagem resultante possui uma resolução menor, mantendo apenas parte das informações da original. 
+</p>
+<p> <strong>Código</strong></p>
+<p>
+    No projeto, esse algoritmo é feito no módulo chamado <strong>decimacao</strong>. Esse módulo, quando acionado, percorre a matriz de pixels da ROM (imagem original) de fator em fator, salvando os pixels restantes em uma nova matriz (RAM). O cálculo do endereço de saída da ROM para a RAM é:
+</p>
+<p>addr_ram_vga = (y_in / fator) * NEW_LARG + (x_in / fator)</p>
+<p>Assim, a saída gera uma imagem reduzida com dimensões: NEW_LARG x NEW_ALTURA.</p>
+
+
+<h3>Decimação(Zoom-Out)</h3>
+<p> <strong>Funcionamento geral</strong></p>
+<p>
+    A decimação é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. O princípio da decimação é o descarte de pixels. O algoritmo percorre a imagem, armazena um pixel de referência e, em seguida, só considera para armazenamento os pixels localizados a uma distância definida pelo <strong>fator</strong>, tanto no eixo horizontal quanto no vertical.
+</p>
+<p>
+    Dessa forma, a imagem resultante possui uma resolução menor, mantendo apenas parte das informações da original. 
+</p>
+<p> <strong>Código</strong></p>
+<p>
+    No projeto, esse algoritmo é feito no módulo chamado <strong>decimacao</strong>. Esse módulo, quando acionado, percorre a matriz de pixels da ROM (imagem original) de fator em fator, salvando os pixels restantes em uma nova matriz (RAM). O cálculo do endereço de saída da ROM para a RAM é:
+</p>
+<p>addr_ram_vga = (y_in / fator) * NEW_LARG + (x_in / fator)</p>
+<p>Assim, a saída gera uma imagem reduzida com dimensões: NEW_LARG x NEW_ALTURA.</p>
