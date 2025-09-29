@@ -112,4 +112,11 @@ A Unidade de Controle, é implementada no módulo control_unity e funciona como 
   <p>
     A ULA do coprocessador é a responsável por aplicar os algoritmos sobre a imagem, a partir da escolha feita no OpCode. Nesse tópico ocorrerá um aprofundamento acerca dos algoritmos os quais foram utilizados para resolução do projeto. 
   </p>
-
+<div>
+  <h2 id="ula">Algoritmos para redimensionamento de imagens</h2>
+  <p>
+    Os algoritmos para redimensionamento de imagens são o conjunto de técnicas utilizadas para alterar a dimensão da imagem em formato matricial, ou seja, pixels organizados em linhas e colunas.
+</p>
+<p>
+    Cada pixel guarda a informação do nível de cinza em 8 bits e ao aplicar operações sobre eles podemos reduzir, ampliar ou transformar a imagem.
+</p>
