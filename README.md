@@ -115,13 +115,20 @@ A Unidade de Controle, é implementada no módulo control_unity e funciona como 
 <div>
   <h2 id="ula">Algoritmos para redimensionamento de imagens</h2>
   <p>
-    Os algoritmos para redimensionamento de imagens são o conjunto de técnicas utilizadas para alterar a dimensão da imagem em formato matricial, ou seja, pixels organizados em linhas e colunas.
-</p>
-<p>
-    Cada pixel guarda a informação do nível de cinza em 8 bits e ao aplicar operações sobre eles podemos reduzir, ampliar ou transformar a imagem.
+    Os algoritmos para redimensionamento de imagens são o conjunto de técnicas utilizadas para alterar a dimensão da imagem em formato matricial, ou seja, pixels organizados em linhas e colunas. Cada pixel armazena a informação do nível de cinza em 8 bits. Ao aplicar operações sobre esses pixels, é possível reduzir, ampliar ou transformar a imagem de acordo com a necessidade.
+
+É importante destacar que a imagem original fica armazenada na ROM, garantindo que o processo de redimensionamento sempre parta da fonte original. A imagem resultante de cada operação é então gravada na RAM, preservando a saída final de cada algoritmo.
+
+Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser definido como 2 ou 4, dependendo do nível de redução ou ampliação desejado pelo usuário.
 </p>
 <h3>Replicação de pixel(Zoom-In)</h3>
-<p>#### &#8594; <strong>Funcionamento</strong></p>
+<p> <strong>Funcionamento geral</strong></p>
 <p>
     A replicação de pixel é um algoritmo de redimensionamento matricial que aumenta as dimensões da matriz. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-in. Na replicação de pixel criamos novos pixels a partir dos pixels já fornecidos, cada pixel é replicado neste método fator vezes linha e coluna, conseguindo dessa forma uma imagem ampliada. De maneira geral, essa operação de replicação é feita inicialmente de maneira horizontal(linhas replicadas) e depois verticalmente(colunas replicadas).
 </p>
+<p> <strong>Código</strong></p>
+<p>
+    No projeto, esse algoritmo é feito no módulo chamado <strong>rep_pixel</strong>. Para cada pixel lido da ROM, ele escreve o mesmo valor várias vezes na RAM, de acordo com o fator de ampliação. Importante ressaltar que essa replicação segue a lógica do algoritmo original, na qual as linhas são replicadas primeiro para depois ser a vez das colunas. O cálculo do endereço de saída da ROM para a RAM é:
+</p>
+<p>ram_wraddr = (linha * fator + di) * NEW_LARG + (coluna * fator + dj)</p>
+<p>Assim, cada pixel é replicado <strong>fator x fator</strong> vezes, gerando uma imagem ampliada.</p>
