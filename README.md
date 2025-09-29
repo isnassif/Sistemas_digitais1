@@ -50,6 +50,39 @@ Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imag
   </p>
 </li>
 
+<h3>Módulos dos Algoritmos</h3>
+<p>...</p>
+
+<h3>Datapath e Fluxo de Execução</h3>
+<p>
+A interação entre a Unidade de Controle e o Datapath define o fluxo de execução do nosso coprocessador de imagem. Podemos descrever isso em duas partes principais: a <strong>sequência de operações</strong> para processar a imagem e o <strong>processo de exibição paralelo</strong>.
+</p>
+<ol>
+<li>
+<strong>Sequência de Leitura, Processamento e Escrita (Controlada pela FSM):</strong>
+<ul>
+<li><strong>Configuração:</strong> No estado <code>ST_RESET</code>, a Unidade de Controle (Control Path) lê a seleção do usuário e configura o Datapath, direcionando os sinais de controle e dados para o módulo de algoritmo correto (e seu fator específico).</li>
+<li><strong>Ciclo Operacional:</strong> A FSM avança para um estado de operação. Para cada pixel ou bloco de pixels a ser processado:
+<ul>
+<li>A Unidade de Controle emite um <code>rom_addr</code>.</li>
+<li>O <code>rom_data</code> correspondente é lido da ROM (com um ciclo de latência) e alimentado ao acelerador de hardware ativo (Datapath).</li>
+<li>O acelerador processa o dado. Alguns módulos podem levar um ciclo (como <code>rep_pixel</code>), outros podem ter uma FSM interna e levar múltiplos ciclos (como <code>media_blocos</code> para processar um bloco completo).</li>
+<li>O resultado (pixel processado) é então capturado pela Unidade de Controle, que emite os sinais <code>wr_addr</code>, <code>wr_data</code>, e <code>wren</code> para escrevê-lo no Framebuffer.</li>
+</ul>
+</li>
+</ul>
+Essa sequência se repete até que toda a imagem seja processada e escrita na RAM.
+</li>
+<li>
+<strong>Exibição Paralela e Contínua (Desacoplamento por Framebuffer):</strong>
+<ul>
+<li>De forma <strong>completamente paralela e independente</strong> ao fluxo de processamento descrito acima, o Driver VGA (outro componente do Datapath) executa seu próprio ciclo de leitura.</li>
+<li>Ele gera continuamente endereços para a segunda porta do Framebuffer e exibe os pixels lá armazenados. Essa operação é ininterrupta e ocorre a uma taxa fixa de 25 MHz.</li>
+<li>Essa independência, garantida pelo Framebuffer de porta dupla, permite que o sistema processe uma nova imagem enquanto a imagem previamente processada continua sendo exibida,  garantindo uma saída de vídeo sem interrupções para o usuário.</li>
+</ul>
+</li>
+</ol>
+
   ![Diagrama da Arquitetura Geral](diagramas/arquiteturageral.png)
 
 
