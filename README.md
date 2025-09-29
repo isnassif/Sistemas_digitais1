@@ -18,7 +18,7 @@ O coprocessador gráfico conseguiu fazer o redimensionamento de imagens a partir
 Sumário
 =================
 - [Arquitetura e Caminho de Dados](#arquitetura-e-caminho-de-dados)
-- [DataPath e Fluxo de Execução](#datapath-e-fluxo)
+- [DataPath e Fluxo de Execução](#datapath-e-fluxo-de-execução)
 
 
 
