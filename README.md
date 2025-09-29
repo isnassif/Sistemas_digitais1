@@ -121,27 +121,27 @@ A Unidade de Controle, é implementada no módulo control_unity e funciona como 
 
 Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser definido como 2 ou 4, dependendo do nível de redução ou ampliação desejado pelo usuário.
 </p>
-<h3>Replicação de pixel(Zoom-In)</h3>
-<p> <strong>Funcionamento geral</strong></p>
+<h2>Replicação de pixel(Zoom-In)</h2>
+<h3> <strong>Funcionamento geral</strong></h3>
 <p>
     A replicação de pixel é um algoritmo de redimensionamento matricial que aumenta as dimensões da matriz. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-in. Na replicação de pixel criamos novos pixels a partir dos pixels já fornecidos, cada pixel é replicado neste método fator vezes linha e coluna, conseguindo dessa forma uma imagem ampliada. De maneira geral, essa operação de replicação é feita inicialmente de maneira horizontal(linhas replicadas) e depois verticalmente(colunas replicadas).
 </p>
-<p> <strong>Código</strong></p>
+<h3> <strong>Código</strong></h3>
 <p>
     No projeto, esse algoritmo é feito no módulo chamado <strong>rep_pixel</strong>. Para cada pixel lido da ROM, ele escreve o mesmo valor várias vezes na RAM, de acordo com o fator de ampliação. Importante ressaltar que essa replicação segue a lógica do algoritmo original, na qual as linhas são replicadas primeiro para depois ser a vez das colunas. O cálculo do endereço de saída da ROM para a RAM é:
 </p>
 <p>ram_wraddr = (linha * fator + di) * NEW_LARG + (coluna * fator + dj)</p>
 <p>Assim, cada pixel é replicado <strong>fator x fator</strong> vezes, gerando uma imagem ampliada.</p>
 
-<h3>Decimação(Zoom-Out)</h3>
-<p> <strong>Funcionamento geral</strong></p>
+<h2>Decimação(Zoom-Out)</h2>
+<h3> <strong>Funcionamento geral</strong></h3>
 <p>
     A decimação é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. O princípio da decimação é o descarte de pixels. O algoritmo percorre a imagem, armazena um pixel de referência e, em seguida, só considera para armazenamento os pixels localizados a uma distância definida pelo <strong>fator</strong>, tanto no eixo horizontal quanto no vertical.
 </p>
 <p>
     Dessa forma, a imagem resultante possui uma resolução menor, mantendo apenas parte das informações da original. 
 </p>
-<p> <strong>Código</strong></p>
+<h3> <strong>Código</strong></h3>
 <p>
     No projeto, esse algoritmo é feito no módulo chamado <strong>decimacao</strong>. Esse módulo, quando acionado, percorre a matriz de pixels da ROM (imagem original) de fator em fator, salvando os pixels restantes em uma nova matriz (RAM). O cálculo do endereço de saída da ROM para a RAM é:
 </p>
@@ -149,17 +149,17 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
 <p>Assim, a saída gera uma imagem reduzida com dimensões: NEW_LARG x NEW_ALTURA.</p>
 
 
-<h3>Decimação(Zoom-Out)</h3>
-<p> <strong>Funcionamento geral</strong></p>
+<h2>Média de blocos(Zoom-Out)</h2>
+<h3> <strong>Funcionamento geral</strong></h3>
 <p>
-    A decimação é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. O princípio da decimação é o descarte de pixels. O algoritmo percorre a imagem, armazena um pixel de referência e, em seguida, só considera para armazenamento os pixels localizados a uma distância definida pelo <strong>fator</strong>, tanto no eixo horizontal quanto no vertical.
+    A média de blocos é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. Diferente da decimação, que apenas descarta pixels, a média de blocos divide a imagem em submatrizes de dimensão fator × fator. Para cada submatriz, o algoritmo calcula a média dos valores de seus elementos e substitui todo o bloco por um único pixel com esse valor médio.
+
+Esse processo preserva melhor a informação visual da imagem original, já que considera todos os pixels do bloco ao invés de apenas alguns deles.
 </p>
+<h3> <strong>Código</strong></h3>
 <p>
-    Dessa forma, a imagem resultante possui uma resolução menor, mantendo apenas parte das informações da original. 
-</p>
-<p> <strong>Código</strong></p>
-<p>
-    No projeto, esse algoritmo é feito no módulo chamado <strong>decimacao</strong>. Esse módulo, quando acionado, percorre a matriz de pixels da ROM (imagem original) de fator em fator, salvando os pixels restantes em uma nova matriz (RAM). O cálculo do endereço de saída da ROM para a RAM é:
+    No projeto, esse algoritmo é feito no módulo chamado <strong>med_blocos</strong>.Esse módulo percorre a matriz de pixels da ROM (imagem original) de fator em fator, salvando os pixels restantes em uma nova matriz (RAM).
+O endereço da saída é calculado como:. O cálculo do endereço de saída da ROM para a RAM é:
 </p>
 <p>addr_ram_vga = (y_in / fator) * NEW_LARG + (x_in / fator)</p>
 <p>Assim, a saída gera uma imagem reduzida com dimensões: NEW_LARG x NEW_ALTURA.</p>
