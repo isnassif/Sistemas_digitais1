@@ -15,8 +15,14 @@ Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imag
 
 
 
+<h2 id="arquitetura">Arquitetura e Caminho de Dados</h2>
+
+
+
+
 <div>
   <h2 id="ula">Unidade Lógica e Aritmética (ULA)</h2>
   <p>
     A ULA do coprocessador é a responsável por aplicar os algoritmos sobre a imagem, a partir da escolha feita no OpCode. Nesse tópico ocorrerá um aprofundamento acerca dos algoritmos os quais foram utilizados para resolução do projeto. 
   </p>
+
