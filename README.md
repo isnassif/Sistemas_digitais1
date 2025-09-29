@@ -18,7 +18,7 @@ Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imag
 <h2 id="arquitetura">Arquitetura e Caminho de Dados</h2>
 
 <p>
-    A arquitetura do sistema foi fundamentada no princípio de <strong>separação de funções</strong>, dividindo o design em uma <strong>Unidade de Controle</strong> (Control Path) e uma <strong>Unidade de Processamento de Dados</strong> (Datapath). Essa abordagem modular não só simplifica a validação de cada componente de forma isolada, mas também permite que as ferramentas de síntese (EDA Tools) otimizem cada parte de forma mais eficiente. A coordenação global é realizada pela Unidade de Controle, que emite sinais para configurar o datapath e sequenciar as operações micro a micro.
+    A arquitetura do sistema foi fundamentada no princípio de <strong>separação de funções</strong>, dividindo o design em uma <strong>Unidade de Controle</strong> (Control Path) e uma <strong>Unidade de Processamento de Dados</strong> (Datapath). Essa abordagem modular não só simplifica a validação de cada componente de forma isolada, mas também permite que as ferramentas de síntese (EDA Tools) otimizem cada parte de forma mais eficiente. Nesse tópico será abordada a arquitetura adotada no desenvolvimento do protótipo.
 </p>
 
 <h3>Componentes Principais e Princípios de Design</h3>
@@ -49,9 +49,30 @@ Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imag
     Se usássemos uma RAM comum (de porta única), o módulo de controle e o driver VGA iriam competir pelo acesso à memória. Para evitar essa disputa e garantir que o processamento e a exibição de vídeo ocorram de forma independente e sem problemas, usamos uma <strong>RAM de porta dupla (BRAM)</strong> na FPGA. Com duas portas separadas, uma para escrever e outra para ler, os dois conseguem trabalhar sem se atrapalhar.
   </p>
 </li>
+<li>
+ <strong>Memória ROM:</strong>
+ <p> A Memória ROM(Read-Only Memory) é responsável por armazenar a imagem orginal de 160x120 em escala de cinza de 8 bits. Ela funciona como a fonte de dados para todos os módulos de algoritmo. Os pixels são lidos sequencialmente, endereço por endereço, pela Unidade de Controle (`rom_to_ram`) e alimentados aos aceleradores de hardware para processamento. É crucial que o acesso à ROM seja rápido e que a latência de leitura (geralmente um ciclo de clock) seja considerada no design do Datapath para garantir o fluxo contínuo de dados.
+</li>   </p>
 
-<h3>Módulos dos Algoritmos</h3>
-<p>...</p>
+
+ <li>
+  <strong>Módulos de Algoritmo:</strong>
+  <p>
+    No "coração" do Datapath, cada módulo de algoritmo (como <code>rep_pixel</code>, <code>copia_direta</code>, <code>zoom</code> e <code>media_blocos</code>) atua como um <strong>acelerador de hardware dedicado</strong>. Esses módulos não são instruções de software, mas circuitos digitais customizados projetados para executar suas funções específicas com máxima eficiência.
+  </p>
+  <ul>
+    <li>
+      <strong>Execução paralela e otimizada:</strong> Cada módulo processa pixels ou blocos de pixels diretamente em hardware, explorando paralelismo e reduzindo a quantidade de ciclos necessária em comparação a uma CPU de propósito geral.
+    </li>
+    <li>
+      <strong>Controle interno:</strong> Alguns módulos, como o <code>rep_pixel</code>, produzem resultados em um único ciclo. Outros, como o <code>media_blocos</code>, possuem sua própria FSM interna para sequenciar leituras, cálculos e escrita, levando múltiplos ciclos, mas ainda de forma altamente otimizada.
+    </li>
+  </ul>
+  <p>
+    Essa abordagem garante que operações mais complexas, como calcular a média de um bloco de pixels, sejam executadas com ordens de magnitude mais rapidez do que em software, mantendo o pipeline de processamento de vídeo contínuo e eficiente.
+  </p>
+</li>
+
 
 <h3>Datapath e Fluxo de Execução</h3>
 <p>
@@ -83,7 +104,14 @@ Essa sequência se repete até que toda a imagem seja processada e escrita na RA
 </li>
 </ol>
 
+<h3>Visão Geral do Fluxo</h3>
+<p>
+O diagrama abaixo ilustra todo o fluxo descrito anteriormente, mostrando a interação entre a Unidade de Controle (<code>rom_to_ram</code>), os módulos de algoritmo, as memórias (ROM e Framebuffer) e o Driver VGA. Ele funciona como uma síntese gráfica da arquitetura e do caminho de dados apresentados.
+</p>
+
   ![Diagrama da Arquitetura Geral](diagramas/arquiteturageral.png)
+
+
 
 
 
