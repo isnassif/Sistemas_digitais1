@@ -27,7 +27,7 @@ Sumário
 ## Arquitetura e Caminho de Dados
 
 <p>
-    O sistema segue o princípio de <strong>separação de funções</strong>, dividindo o design em <strong>Unidade de Controle</strong> (Control Path) e <strong>Datapath</strong>. Essa abordagem modular facilita a validação isolada de cada componente e permite que ferramentas de síntese otimizem cada parte de forma eficiente. Nesse tópico será abordada a arquitetura adotada no desenvolvimento do protótipo.
+    O sistema segue o princípio de <strong>separação de funções</strong>, com uma hierarquia de controle clara e um <em>datapath</em> dedicado para as operações de imagem. O módulo de topo <code>control_unity</code> integra todos os componentes, enquanto a <code>ULA</code> atua como uma unidade de controle especializada, gerenciando o fluxo de dados entre as memórias e os aceleradores de hardware (módulos de algoritmo). Essa abordagem modular facilita a validação isolada de cada componente e permite que ferramentas de síntese otimizem cada parte de forma eficiente. Nesse tópico será abordada a arquitetura adotada no desenvolvimento do protótipo.
 </p>
 
 <h3>Componentes Principais</h3>
@@ -46,7 +46,7 @@ Sumário
     </li>
     <li>
         <strong>Módulos dos Algoritmos</strong>:  
-        Circuits dedicados (<code>rep_pixel</code>, <code>copia_direta</code>, <code>zoom</code>, <code>media_blocos</code>) que processam pixels de forma paralela e otimizada. Alguns módulos operam em um ciclo, enquanto outros têm FSM interna para cálculos mais complexos, garantido mais eficiência na execução das operações.
+        Circuitos dedicados (<code>rep_pixel</code>, <code>copia_direta</code>, <code>zoom</code>, <code>media_blocos</code>) que processam pixels de forma paralela e otimizada. Alguns módulos operam em um ciclo, enquanto outros têm FSM interna para cálculos mais complexos, garantido mais eficiência na execução das operações.
     </li>
 </ul>
 
