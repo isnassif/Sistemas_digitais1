@@ -170,3 +170,34 @@ O endereço da saída é calculado como:. O cálculo do endereço de saída da R
 </p>
 <p>addr_ram_vga = (y_in / fator) * NEW_LARG + (x_in / fator)</p>
 <p>Assim, a saída gera uma imagem reduzida com dimensões: NEW_LARG x NEW_ALTURA.</p>
+
+
+
+<h2 id="vga">Módulo VGA</h2>
+
+<p>
+    O <code>vga_driver</code> é responsável por exibir o framebuffer digital da FPGA no padrão VGA analógico. Ele gera quadros de 640x480 pixels a 60 Hz usando clock de 25 MHz, convertendo os valores de 8 bits do framebuffer para sinais RGB via DAC externo da DE1-SoC.
+</p>
+
+<h3>Temporização e Sincronismo</h3>
+<p>A temporização VGA é implementada por contadores síncronos:</p>
+<ul>
+    <li><strong>Horizontal:</strong> <code>h_count</code> varre 0–799 pixels, incluindo área visível (640 pixels), front/back porch e pulso HSYNC.</li>
+    <li><strong>Vertical:</strong> <code>v_count</code> varre 0–524 linhas, incluindo área visível (480 linhas), front/back porch e pulso VSYNC.</li>
+</ul>
+
+<h3>Escala, Centralização e Leitura do Framebuffer</h3>
+<p>
+    Para exibir a imagem processada (geralmente 160x120 pixels) em uma tela de 640x480 pixels, o <code>vga_driver</code> realiza:
+</p>
+<ul>
+    <li>
+        <strong>Cálculo da Escala (Zoom 4x):</strong> Cada pixel da imagem original gera 4x4 pixels na tela VGA, obtendo as coordenadas na imagem de 160x120 dividindo <code>h_count</code> e <code>v_count</code> da tela por 4.
+    </li>
+    <li>
+        <strong>Centralização:</strong> A imagem resultante é centralizada se tiver dimensões menores que 640x480, calculando offsets para posicionamento adequado.
+    </li>
+    <li>
+        <strong>Leitura e Exibição:</strong> Os contadores ajustados calculam o endereço linear do framebuffer. A Block RAM entrega o pixel (<code>color_in</code>) com 1 ciclo de latência. O pixel é enviado ao DAC e exibido. O <i>blanking</i> garante preto durante porches e pulsos de sincronismo, mantendo a saída contínua e correta.
+    </li>
+</ul>
