@@ -20,6 +20,7 @@ Sumário
 - [Arquitetura e Caminho de Dados](#arquitetura-e-caminho-de-dados)
 - [DataPath e Fluxo de Execução](#datapath-e-fluxo-de-execução)
 - [Unidade de Controle](#unidade-de-controle)
+- [Módulo VGA](#módulo-vga)
 
 
 
@@ -173,7 +174,7 @@ O endereço da saída é calculado como:. O cálculo do endereço de saída da R
 
 
 
-<h2 id="vga">Módulo VGA</h2>
+## Módulo VGA
 
 <p>
     O <code>vga_driver</code> é responsável por exibir o framebuffer digital da FPGA no padrão VGA analógico. Ele gera quadros de 640x480 pixels a 60 Hz usando clock de 25 MHz, convertendo os valores de 8 bits do framebuffer para sinais RGB via DAC externo da DE1-SoC.
