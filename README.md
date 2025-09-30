@@ -9,7 +9,8 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
 
 </p>
 <p>O coprocessador gráfico conseguiu fazer o redimensionamento de imagens a partir dos seguintes algoritmos:</p>
-<p>a) Replicação de pixel(Zoom-In)</p>
+<p>
+    a) Replicação de pixel(Zoom-In)</p>
 <p>b) Vizinho mais próximo(Zoom-In)</p>
 <p>c) Decimação(Zoom-Out)</p>
 <p>d) Média de blocos(Zoom-Out)</p>
