@@ -20,13 +20,27 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
 <p>d) Média de blocos(Zoom-Out)</p>
 <p>Vale lembrar que esses algoritmos devem garantir que o redimensionamento da imagem possa ocorrer em 2x.</p>
 
-Sumário
-=================
-- [Arquitetura e Caminho de Dados](#arquitetura-e-caminho-de-dados)
-- [DataPath e Fluxo de Execução](#datapath-e-fluxo-de-execução)
-- [Unidade de Controle](#unidade-de-controle)
-- [Módulo VGA](#módulo-vga)
-
+# Sumário
+- [Descrição do Projeto](#descrição-do-projeto)  
+- [Arquitetura e Caminho de Dados](#arquitetura-e-caminho-de-dados)  
+  - [Componentes Principais](#componentes-principais)  
+- [DataPath e Fluxo de Execução](#datapath-e-fluxo-de-execução)  
+  - [Visão Geral do Fluxo](#visão-geral-do-fluxo)  
+- [Unidade de Controle](#unidade-de-controle)  
+  - [Funções Principais](#funções-principais)  
+  - [Fluxo Operacional](#fluxo-operacional)  
+  - [Exemplo de Operação](#exemplo-de-operação)  
+- [Unidade Lógica e Algorítmica (ULA)](#unidade-lógica-e-algorítmica-ula)  
+  - [Integração com os Demais Blocos](#integração-com-os-demais-blocos)  
+  - [Fluxo Operacional](#fluxo-operacional-1)  
+  - [Exemplo de Operação](#exemplo-de-operação-1)  
+- [Algoritmos para Redimensionamento de Imagens](#algoritmos-para-redimensionamento-de-imagens)  
+  - [Replicação de Pixel (Zoom-In)](#replicação-de-pixelzoom-in)  
+  - [Decimação (Zoom-Out)](#decimaçãozoom-out)  
+  - [Média de Blocos (Zoom-Out)](#média-de-blocoszoom-out)  
+- [Módulo VGA](#módulo-vga)  
+  - [Temporização e Sincronismo](#temporização-e-sincronismo)  
+  - [Escala, Centralização e Leitura do Framebuffer](#escala-centralização-e-leitura-do-framebuffer)  
 
 
 ## Arquitetura e Caminho de Dados
@@ -240,3 +254,17 @@ Esse processo preserva melhor a informação visual da imagem original, já que 
         <strong>Leitura e Exibição:</strong> Os contadores ajustados calculam o endereço linear do framebuffer. A Block RAM entrega o pixel (<code>color_in</code>) com 1 ciclo de latência. O pixel é enviado ao DAC e exibido. O <i>blanking</i> garante preto durante porches e pulsos de sincronismo, mantendo a saída contínua e correta.
     </li>
 </ul>
+
+# Referências
+
+TERASIC. *DE1-SoC Development and Education Board*. Disponível em:  
+<https://www.rocketboards.org/foswiki/Documentation/TerasicDE1SoCDevelopmentAndEducationBoard>.  
+Acesso em: 29 set. 2025.  
+
+INTEL. *Intel Quartus Prime Lite Edition - User Guide*. Intel FPGA, 2023.  
+
+CHU, Pong P. *FPGA Prototyping by Verilog Examples*. 2. ed. Wiley, 2017.  
+
+HARRIS, David; HARRIS, Sarah. *Digital Design and Computer Architecture*. 2. ed. Morgan Kaufmann, 2012.  
+
+Materiais e notas de aula da disciplina de **Sistemas Digitais / Processamento Digital de Imagens** – Universidade (2025).  
