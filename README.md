@@ -70,10 +70,10 @@ Sumário
 
 <h3>Visão Geral do Fluxo</h3>
 <p>
-    O diagrama abaixo ilustra a interação entre a Unidade de Controle (<code>rom_to_ram</code>), os módulos de algoritmo, as memórias (ROM e Framebuffer) e o driver VGA, mostrando o caminho de dados e o fluxo de execução do sistema.
+O diagrama abaixo ilustra a arquitetura completa do sistema, orquestrada pelo módulo de topo <code>control_unity</code>. Ele detalha a interação entre a Unidade Lógica e Aritmética (<code>ULA</code>), responsável pelo processamento da imagem, as memórias on-chip (<code>ROM</code> de origem e <code>Framebuffer RAM</code> dual-port) e o <code>VGA Driver</code>, que gera o sinal de vídeo final para o monitor.
 </p>
 
-  ![Diagrama da Arquitetura Geral](diagramas/arquiteturageral.png)
+  ![Diagrama da Arquitetura Geral](diagramas/arquiteturgeral.png)
 
 
 ## Unidade de Controle
