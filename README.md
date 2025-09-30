@@ -166,8 +166,7 @@ Esse processo preserva melhor a informação visual da imagem original, já que 
 </p>
 <h3> <strong>Código</strong></h3>
 <p>
-    No projeto, esse algoritmo é feito no módulo chamado <strong>med_blocos</strong>.Esse módulo percorre a matriz de pixels da ROM (imagem original) de fator em fator, salvando os pixels restantes em uma nova matriz (RAM).
-O endereço da saída é calculado como:. O cálculo do endereço de saída da ROM para a RAM é:
+    No projeto, esse algoritmo é feito no módulo chamado <strong>med_blocos</strong>.Esse módulo percorre a matriz de pixels da ROM (imagem original) de fator em fator, salvando os pixels restantes em uma nova matriz (RAM). O cálculo do endereço de saída da ROM para a RAM é:
 </p>
 <p>addr_ram_vga = (y_in / fator) * NEW_LARG + (x_in / fator)</p>
 <p>Assim, a saída gera uma imagem reduzida com dimensões: NEW_LARG x NEW_ALTURA.</p>
