@@ -4,6 +4,10 @@
 <p>
 Esse projeto tem o objetivo de implementar um coprocessador gráfico para realizar, em tempo real, redimensionamento de imagens gerando sobre elas efeitos de Zoom-In e Zoom-Out. Esse processo foi feito utilizando o kit de desenvolvimento DE1-SoC, que contém um coprocessador Cyclone V. O sistema aplica técnicas que buscam variar o dimensionamento de imagens em escala de cinza, com representação de pixels em 8 bits, e exibe o resultado via saída VGA. O ambiente de desenvolvimento utilizado foi o Intel Quartus Prime Lite 23.1, e a linguagem de descrição de hardware usada foi o Verilog.
 
+<div align="center">
+    <img src="[images/fpga.jpg](https://instock.pk/pub/media/catalog/product/cache/df03ccf4bae2e9a360be5b342513ca0d/d/e/de1-soc_altera_fpga_development_board_cyclone_v.jpg)"><br>
+    <strong>Imagem do Site da Altera</strong><br><br>
+  </div>
     
 
 
