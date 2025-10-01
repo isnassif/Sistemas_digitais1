@@ -181,7 +181,7 @@ Se o usuário alterar o seletor para 0001 (decimação ×2), a FSM retornaria ao
 
 # Memórias
 
-<h2 id="mem">Memórias utilizadas no projeto</h2>
+<h2 id="mem">Memórias ROM e RAM</h2>
     <p>
         Após entender todo o funcimaneto da ULA e da unidade de controle, é importante entender um dos componentes principais para o funcionamento do código, as memórias ROM e RAM. Para isso, é importante destacar que ambas foram geradas atraǘes da ferramente IP Catalog, disponível na IDE Quartus.
     </p>
