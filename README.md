@@ -188,6 +188,10 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
 <p>
     A replicação de pixel é um algoritmo de redimensionamento matricial que aumenta as dimensões da matriz. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-in. Na replicação de pixel criamos novos pixels a partir dos pixels já fornecidos, cada pixel é replicado neste método fator vezes linha e coluna, conseguindo dessa forma uma imagem ampliada. De maneira geral, essa operação de replicação é feita inicialmente de maneira horizontal(linhas replicadas) e depois verticalmente(colunas replicadas).
 </p>
+<div align="center">
+    <img src=""><br>
+    <strong>Imagem do Site da Altera</strong><br><br>
+  </div>
 <h3> <strong>Código</strong></h3>
 <p>
     No projeto, esse algoritmo é feito no módulo chamado <strong>rep_pixel</strong>. Para cada pixel lido da ROM, ele escreve o mesmo valor várias vezes na RAM, de acordo com o fator de ampliação. Importante ressaltar que essa replicação segue a lógica do algoritmo original, na qual as linhas são replicadas primeiro para depois ser a vez das colunas. O cálculo do endereço de saída da ROM para a RAM é:
