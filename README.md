@@ -36,7 +36,7 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
   - [Exemplo de Operação](#exemplo-de-operação-1)  
 - [Algoritmos para Redimensionamento de Imagens](#algoritmos-para-redimensionamento-de-imagens)  
   - [Replicação de Pixel (Zoom-In)](#replicação-de-pixelzoom-in)
-  - [Vizinho mais próximo (Zoom-In)](#vizinho-mais-proximozoom-in) 
+  - [Vizinho mais próximo (Zoom-In)](#vizinho-mais-próximozoom-in) 
   - [Decimação (Zoom-Out)](#decimaçãozoom-out)  
   - [Média de Blocos (Zoom-Out)](#média-de-blocoszoom-out)  
 - [Módulo VGA](#módulo-vga)  
