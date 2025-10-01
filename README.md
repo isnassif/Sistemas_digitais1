@@ -33,7 +33,8 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
 - [Unidade Lógica e Algorítmica (ULA)](#unidade-lógica-e-algorítmica-ula)  
   - [Integração com os Demais Blocos](#integração-com-os-demais-blocos)  
   - [Fluxo Operacional](#fluxo-operacional-1)  
-  - [Exemplo de Operação](#exemplo-de-operação-1)  
+  - [Exemplo de Operação](#exemplo-de-operação-1)
+- [Memórias](#Memórias)
 - [Algoritmos para Redimensionamento de Imagens](#algoritmos-para-redimensionamento-de-imagens)  
   - [Replicação de Pixel (Zoom-In)](#replicação-de-pixelzoom-in)
   - [Vizinho mais próximo (Zoom-In)](#vizinho-mais-próximozoom-in) 
@@ -63,6 +64,10 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
     <li>
         <strong>Memória ROM</strong>:  
         Armazena a imagem original de 160x120 pixels em escala de cinza. A Unidade de Controle lê os pixels sequencialmente e fornece aos módulos de algoritmo para processamento.
+    </li>
+        <li>
+        <strong>Memória RAM</strong>:
+            Responsável por armazenar as imagens alteradas, sendo sempre sobreescrita de acordo com o algoritmo selecionado.
     </li>
     <li>
         <strong>Módulos dos Algoritmos</strong>:  
@@ -134,8 +139,6 @@ Seguiremos agora, para uma explicação de cada um dos módulos do projeto, come
 </p>
 
 
-
-
 <h2 id="ula">Unidade Lógica e Algorítmica (ULA)</h2>
 <p>
 O módulo ULA é responsável por coordenar e aplicar os diferentes algoritmos de processamento de imagens disponíveis no projeto, ela atua como um seletor inteligente que direciona os dados lidos da ROM para o submódulo adequado (algoritmos) e garante a escrita correta no framebuffer. Abaixo, será explicado o seu funcionamento de forma detalhada:
@@ -175,6 +178,23 @@ Para um melhor entendimento do funcionamento, vamos para um exemplo prático, su
 <p>
 Se o usuário alterar o seletor para 0001 (decimação ×2), a FSM retornaria ao estado de reset, desabilitando o módulo de replicação e ativando o estado de decimacao. A partir daí, todos os demais algoritmos, incluindo osa anteriores são zerados e apenas um a cada dois pixels seria escrito no framebuffer, reduzindo a imagem de maneira controlada. Esse comportamento padronizado, em que cada estado habilita exclusivamente o algoritmo correspondente, garante robustez ao sistema, permitindo que múltiplos modos de redimensionamento coexistam em um mesmo projeto sem conflito de sinais.
 </p>
+
+# Memórias
+
+<h2 id="mem">Memórias utilizadas no projeto</h2>
+    <p>
+        Após entender todo o funcimaneto da ULA e da unidade de controle, é importante entender um dos componentes principais para o funcionamento do código, as memórias ROM e RAM. Para isso, é importante destacar que ambas foram geradas atraǘes da ferramente IP Catalog, disponível na IDE Quartus.
+    </p>
+    <p>
+        Como memória principal do projeto, temos a memória ROM, responsável por armazenar valores pixel a pixel de uma imagem 160x120 (totalizando 19.200 bytes), esses valores, são referentes a escala de cinza da imagem original, que é inicializada por injeção de dados na memória ROM. Assim, a cópia direta, uma das funcionalidades do projeto, replicada a imagem direto da ROM, tendo em vista que ela contém a imagem original desejada pelo algoritmo. Na prática, a ROM atua como banco de dados fixo do sistema, sendo lida sequencialmente durante a execução. Cada endereço acessado corresponde a um pixel da imagem, e seu valor é transferido para a ULA, que pode aplicar diferentes transformações, como replicação, decimação ou zoom. Dessa forma, a ROM garante a integridade da entrada, funcionando como a fonte primária para o processamento de imagens dentro do FPGA.
+    </p>
+    <p>
+    A memória RAM, por sua vez, é utilizada como espaço de armazenamento temporário e dinâmico. Diferente da ROM, que contém os dados fixos da imagem original, a RAM é responsável por receber os resultados após o processamento realizado pela ULA. Assim, ao final de cada operação (como replicação, decimação ou zoom), a nova imagem processada é gravada na RAM. Essa estratégia permite que os dados modificados sejam preservados em um local distinto da entrada, evitando a perda da imagem original e possibilitando a exibição correta do resultado no display VGA. Cada posição de memória na RAM corresponde a um pixel da saída, e o endereço de escrita é controlado pela unidade de controle do projeto, garantindo que a imagem seja armazenada de forma ordenada e consistente.
+</p>
+<p>
+    Portanto, enquanto a ROM garante o fornecimento estável da imagem de entrada, a RAM assegura a flexibilidade necessária para manipular e guardar as transformações realizadas pelo sistema. Essa interação entre as duas memórias é fundamental para o correto funcionamento do fluxo de processamento de imagens dentro da arquitetura implementada.
+</p>
+
 
 <h2 id="alg">Algoritmos para redimensionamento de imagens</h2>
   <p>
