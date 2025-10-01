@@ -189,8 +189,8 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
     A replicação de pixel é um algoritmo de redimensionamento matricial que aumenta as dimensões da matriz. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-in. Na replicação de pixel criamos novos pixels a partir dos pixels já fornecidos, cada pixel é replicado neste método fator vezes linha e coluna, conseguindo dessa forma uma imagem ampliada. De maneira geral, essa operação de replicação é feita inicialmente de maneira horizontal(linhas replicadas) e depois verticalmente(colunas replicadas).
 </p>
 <div align="center">
-    <img src=""><br>
-    <strong>Imagem do Site da Altera</strong><br><br>
+    <img src="diagramas/replicacao_pixels_animada.gif"><br>
+    <strong>GIF: Funcionamento de Replicação de Pixel.</strong><br><br>
   </div>
 <h3> <strong>Código</strong></h3>
 <p>
@@ -247,7 +247,10 @@ ram_wraddr <= (linha * fator + di) * NEW_LARG + (coluna * fator + dj);
 <h3> <strong>Funcionamento geral</strong></h3>
 <p>
     A média de blocos é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. Diferente da decimação, que apenas descarta pixels, a média de blocos divide a imagem em submatrizes de dimensão fator × fator. Para cada submatriz, o algoritmo calcula a média dos valores de seus elementos e substitui todo o bloco por um único pixel com esse valor médio.
-
+<div align="center">
+    <img src="diagramas/media_blocos.gif"><br>
+    <strong>GIF: Funcionamento de Média de Blocos.</strong><br><br>
+  </div>
 Esse processo preserva melhor a informação visual da imagem original, já que considera todos os pixels do bloco ao invés de apenas alguns deles.
 </p>
 <h3> <strong>Código</strong></h3>
