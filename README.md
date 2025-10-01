@@ -211,7 +211,7 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
 </p>
 <div align="center">
     <img src="diagramas/replicacao_pixels_animada.gif"><br>
-    <strong>GIF: Funcionamento de Replicação de Pixel.</strong><br><br>
+    <strong>GIF: Funcionamento de Replicação de Pixel. Fator 2 em uma matriz 2 x 2.</strong><br><br>
   </div>
 <h3> <strong>Código</strong></h3>
 <p>
@@ -225,6 +225,10 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
 <p>
     O vizinho mais próximo é um algoritmo de redimensionamento matricial que aumenta as dimensões da matriz. A ideia dele é: cada novo pixel da imagem ampliada recebe o valor do pixel mais próximo da imagem original. Assim, há apenas a cópia direta do valor mais próximo.
 </p>
+<div align="center">
+    <img src="diagramas/vizinho_mais_proximo_matriz_compacto.gif"><br>
+    <strong>GIF: Funcionamento de Vizinho mais próximo. Fator 2 em uma matriz 2 x 2.</strong><br><br>
+  </div>
 <p>
     O processo segue duas etapas principais:
 </p>
