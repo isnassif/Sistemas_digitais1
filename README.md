@@ -253,6 +253,10 @@ ram_wraddr <= (linha * fator + di) * NEW_LARG + (coluna * fator + dj);
 <p>
     A decimação é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. O princípio da decimação é o descarte de pixels. O algoritmo percorre a imagem, armazena um pixel de referência e, em seguida, só considera para armazenamento os pixels localizados a uma distância definida pelo <strong>fator</strong>, tanto no eixo horizontal quanto no vertical.
 </p>
+<div align="center">
+    <img src="diagramas/decimacao_animada.gif"><br>
+    <strong>GIF: Funcionamento de Decimação. Fator:2 e Matriz 4 x 4</strong><br><br>
+  </div>
 <p>
     Dessa forma, a imagem resultante possui uma resolução menor, mantendo apenas parte das informações da original. 
 </p>
@@ -270,7 +274,7 @@ ram_wraddr <= (linha * fator + di) * NEW_LARG + (coluna * fator + dj);
     A média de blocos é um algoritmo de redimensionamento matricial que reduz as dimensões da matriz original. Quando aplicada a uma imagem (vista como uma matriz de pixels), o efeito é equivalente a um zoom-out. Diferente da decimação, que apenas descarta pixels, a média de blocos divide a imagem em submatrizes de dimensão fator × fator. Para cada submatriz, o algoritmo calcula a média dos valores de seus elementos e substitui todo o bloco por um único pixel com esse valor médio.
 <div align="center">
     <img src="diagramas/media_blocos.gif"><br>
-    <strong>GIF: Funcionamento de Média de Blocos.</strong><br><br>
+    <strong>GIF: Funcionamento de Média de Blocos. Fator:2 e Matriz 4 x 4.</strong><br><br>
   </div>
 Esse processo preserva melhor a informação visual da imagem original, já que considera todos os pixels do bloco ao invés de apenas alguns deles.
 </p>
