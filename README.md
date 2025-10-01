@@ -324,4 +324,4 @@ CHU, Pong P. *FPGA Prototyping by Verilog Examples*. 2. ed. Wiley, 2017.
 
 HARRIS, David; HARRIS, Sarah. *Digital Design and Computer Architecture*. 2. ed. Morgan Kaufmann, 2012.  
 
-Materiais e notas de aula da disciplina de **Sistemas Digitais / Processamento Digital de Imagens** – Universidade (2025).  
+Materiais e notas de aula da disciplina de **Sistemas Digitais e Arquitetura de computadores** – Universidade Estadual de Feira de Santana (2025).  
