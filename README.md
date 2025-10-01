@@ -178,7 +178,7 @@ Se o usuário alterar o seletor para 0001 (decimação ×2), a FSM retornaria ao
 
 <h2 id="alg">Algoritmos para redimensionamento de imagens</h2>
   <p>
-    Agora, tratatemos sobre os algoritmos para redimensionamento de imagens, que são o conjunto de técnicas utilizadas para alterar a dimensão da imagem em formato matricial, ou seja, pixels organizados em linhas e colunas. Cada pixel armazena a informação do nível de cinza em 8 bits. Ao aplicar operações sobre esses pixels, é possível reduzir, ampliar ou transformar a imagem de acordo com a necessidade.
+    Os algoritmos para redimensionamento de imagens é o conjunto de técnicas utilizadas para alterar a dimensão da imagem em formato matricial, ou seja, pixels organizados em linhas e colunas. Cada pixel armazena a informação do nível de cinza em 8 bits. Ao aplicar operações sobre esses pixels, é possível reduzir, ampliar ou transformar a imagem de acordo com a necessidade.
 
 É importante destacar que a imagem original fica armazenada na ROM, garantindo que o processo de redimensionamento sempre parta da fonte original. A imagem resultante de cada operação é então gravada na RAM, preservando a saída final de cada algoritmo.
 
