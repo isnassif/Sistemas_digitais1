@@ -320,6 +320,11 @@ Esse processo preserva melhor a informação visual da imagem original, já que 
     </li>
 </ul>
 
+
+<div align="center">
+    <img src="diagramas/produto.gif"><br>
+ 
+  </div>
 # Referências
 
 TERASIC. *DE1-SoC Development and Education Board*. Disponível em:  
