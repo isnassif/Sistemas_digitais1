@@ -66,7 +66,8 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
     </li>
     <li>
         <strong>Módulos dos Algoritmos</strong>:  
-        Circuitos dedicados (<code>rep_pixel</code>, <code>copia_direta</code>, <code>zoom</code>, <code>media_blocos</code>) que processam pixels de forma paralela e otimizada. Alguns módulos operam em um ciclo, enquanto outros têm FSM interna para cálculos mais complexos, garantido mais eficiência na execução das operações.
+        Circuitos dedicados (<code>rep_pixel</code>, <code>copia_direta</code>, <code>zoom_nn</code>, <code>media_blocos</code>,
+        <code>decimacao</code>) que processam pixels de forma paralela e otimizada. Alguns módulos operam em um ciclo, enquanto outros têm FSM interna para cálculos mais complexos, garantido mais eficiência na execução das operações.
     </li>
 </ul>
 
