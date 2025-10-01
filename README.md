@@ -238,11 +238,11 @@ Cada pixel da imagem original é replicado fator x fator vezes (com fator defini
 
 A lógica principal é:
 </p>
-<p>// Endereço da ROM (apenas no início do bloco):
+<p>Endereço da ROM (apenas no início do bloco):
 if (di == 0 && dj == 0)
     rom_addr <= linha * LARGURA + coluna;
 
-// Endereço da RAM para o pixel replicado:
+Endereço da RAM para o pixel replicado:
 ram_wraddr <= (linha * fator + di) * NEW_LARG + (coluna * fator + dj);
 </p>
 <p>Assim, cada pixel é replicado <strong>fator x fator</strong> vezes, gerando uma imagem ampliada.</p>
