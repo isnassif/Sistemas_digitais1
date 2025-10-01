@@ -194,6 +194,34 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
 <p>ram_wraddr = (linha * fator + di) * NEW_LARG + (coluna * fator + dj)</p>
 <p>Assim, cada pixel é replicado <strong>fator x fator</strong> vezes, gerando uma imagem ampliada.</p>
 
+<h2>Vizinho mais próximo(Zoom-In)</h2>
+<h3> <strong>Funcionamento geral</strong></h3>
+<p>
+    O vizinho mais próximo é um algoritmo de redimensionamento matricial que aumenta as dimensões da matriz. A ideia dele é: cada novo pixel da imagem ampliada recebe o valor do pixel mais próximo da imagem original. Assim, há apenas a cópia direta do valor mais próximo.
+</p>
+<p>
+    O processo segue duas etapas principais:
+</p>
+<p>1- Calcular a psoição correspondente do pixel na imagem original</p>
+<p>2- Atribuir ao pixel ampliado o valor do pixel mais próximo dessa posição. </p>
+<h3> <strong>Código</strong></h3>
+<p>
+    No projeto, o algoritmo de vizinho mais próximo foi implementado no módulo zoom_nn. Esse módulo recebe os dados da ROM (imagem original) e gera a imagem ampliada que é escrita na RAM.
+
+Cada pixel da imagem original é replicado fator x fator vezes (com fator definido como parâmetro, podendo ser 2, 3, 4, etc.). Para isso, o endereço de leitura da ROM é calculado apenas no início de cada bloco de replicação, enquanto os endereços da RAM são atualizados para preencher os pixels ampliados.
+
+A lógica principal é:
+</p>
+<p>)// Endereço da ROM (apenas no início do bloco)
+if (di == 0 && dj == 0)
+    rom_addr <= linha * LARGURA + coluna;
+
+// Endereço da RAM para o pixel replicado
+ram_wraddr <= (linha * fator + di) * NEW_LARG + (coluna * fator + dj);
+</p>
+<p>Assim, cada pixel é replicado <strong>fator x fator</strong> vezes, gerando uma imagem ampliada.</p>
+
+
 <h2>Decimação(Zoom-Out)</h2>
 <h3> <strong>Funcionamento geral</strong></h3>
 <p>
