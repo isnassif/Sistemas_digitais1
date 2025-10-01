@@ -202,7 +202,7 @@ Os algoritmos recebem como parâmetro um valor chamado fator, que pode ser defin
 <p>
     O processo segue duas etapas principais:
 </p>
-<p>1- Calcular a psoição correspondente do pixel na imagem original</p>
+<p>1- Calcular a posição correspondente do pixel na imagem original</p>
 <p>2- Atribuir ao pixel ampliado o valor do pixel mais próximo dessa posição. </p>
 <h3> <strong>Código</strong></h3>
 <p>
