@@ -272,23 +272,23 @@ Esse processo preserva melhor a informação visual da imagem original, já que 
 <h3>Temporização e Sincronismo</h3>
 <p>A temporização VGA é implementada por contadores síncronos:</p>
 <ul>
-    <li><strong>Horizontal:</strong> <code>h_count</code> varre 0–799 pixels, incluindo área visível (640 pixels), front/back porch e pulso HSYNC.</li>
-    <li><strong>Vertical:</strong> <code>v_count</code> varre 0–524 linhas, incluindo área visível (480 linhas), front/back porch e pulso VSYNC.</li>
+    <li><strong>Horizontal:</strong> h_countvarre 0–799 pixels, incluindo área visível (640 pixels), front/back porch e pulso HSYNC.</li>
+    <li><strong>Vertical:</strong> v_count varre 0–524 linhas, incluindo área visível (480 linhas), front/back porch e pulso VSYNC.</li>
 </ul>
 
 <h3>Escala, Centralização e Leitura do Framebuffer</h3>
 <p>
-    Para exibir a imagem processada (geralmente 160x120 pixels) em uma tela de 640x480 pixels, o <code>vga_driver</code> realiza:
+    Para exibir a imagem processada (geralmente 160x120 pixels) em uma tela de 640x480 pixels, o vga_driver realiza:
 </p>
 <ul>
     <li>
-        <strong>Cálculo da Escala (Zoom 4x):</strong> Cada pixel da imagem original gera 4x4 pixels na tela VGA, obtendo as coordenadas na imagem de 160x120 dividindo <code>h_count</code> e <code>v_count</code> da tela por 4.
+        <strong>Cálculo da Escala (Zoom 4x):</strong> Cada pixel da imagem original gera 4x4 pixels na tela VGA, obtendo as coordenadas na imagem de 160x120 dividindo h_count e v_count da tela por 4.
     </li>
     <li>
         <strong>Centralização:</strong> A imagem resultante é centralizada se tiver dimensões menores que 640x480, calculando offsets para posicionamento adequado.
     </li>
     <li>
-        <strong>Leitura e Exibição:</strong> Os contadores ajustados calculam o endereço linear do framebuffer. A Block RAM entrega o pixel (<code>color_in</code>) com 1 ciclo de latência. O pixel é enviado ao DAC e exibido. O <i>blanking</i> garante preto durante porches e pulsos de sincronismo, mantendo a saída contínua e correta.
+        <strong>Leitura e Exibição:</strong> Os contadores ajustados calculam o endereço linear do framebuffer. A Block RAM entrega o pixel (color_in) com 1 ciclo de latência. O pixel é enviado ao DAC e exibido. O <i>blanking</i> garante preto durante porches e pulsos de sincronismo, mantendo a saída contínua e correta.
     </li>
 </ul>
 
