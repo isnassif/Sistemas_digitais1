@@ -40,10 +40,9 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
   - [Vizinho mais próximo (Zoom-In)](#vizinho-mais-próximozoom-in) 
   - [Decimação (Zoom-Out)](#decimaçãozoom-out)  
   - [Média de Blocos (Zoom-Out)](#média-de-blocoszoom-out)  
-- [Módulo VGA](#módulo-vga)  
+- [Módulo VGA](#módulo-vga)
   - [Temporização e Sincronismo](#temporização-e-sincronismo)  
-  - [Escala, Centralização e Leitura do Framebuffer](#escala-centralização-e-leitura-do-framebuffer)  
-- [Resultados].(#Resultados)
+  - [Escala, Centralização e Leitura do Framebuffer](#escala-centralização-e-leitura-do-framebuffer)
 
 ## Arquitetura e Caminho de Dados
 
