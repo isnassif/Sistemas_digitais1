@@ -320,6 +320,16 @@ Esse processo preserva melhor a informação visual da imagem original, já que 
     </li>
 </ul>
 
+# Resultados e erros
+
+<p>
+    Após entender todo o funcionamento do projeto, é necessário analisar com calma os erros e resultados alcançados. 
+</p>
+
+<p>
+    O projeto conseguiu alnçar com êxito todos os pré requisitos do problema, permitindo zoom-in e zoom-out, cada um com quatro algoritmos e em fator 2x e 4x. A arquitetura seguiu o modelo desejado pelo texto problema, facilitando futuras integrações com demais componentes, entretanto, é importante destacar que está sujeita a melhoras, como a criação de uma memória única. Como erro, o principal observado foi uma linha lateral identificada em algumas imagens, principlamnete na imagem original (160x120), não foi possível identificar a causa do problema de forma certeira, porém, uma suspeita do grupo é que exista um erro no cálculo dos parêmetros next_x e next_y. É possível ver abaixo uma sessão de testes, aplicando todos os 4 algoritmos em ambos os fatores, também é possível identificar a linha lateral:
+</p>
+
 
 <div align="center">
     <img src="diagramas/produto.gif"><br>
