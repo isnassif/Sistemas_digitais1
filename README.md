@@ -43,7 +43,7 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
 - [Módulo VGA](#módulo-vga)  
   - [Temporização e Sincronismo](#temporização-e-sincronismo)  
   - [Escala, Centralização e Leitura do Framebuffer](#escala-centralização-e-leitura-do-framebuffer)  
-
+- [Resultados].(#Resultados)
 
 ## Arquitetura e Caminho de Dados
 
@@ -320,7 +320,7 @@ Esse processo preserva melhor a informação visual da imagem original, já que 
     </li>
 </ul>
 
-# Resultados e erros
+# Resultados
 
 <p>
     Após entender todo o funcionamento do projeto, é necessário analisar com calma os erros e resultados alcançados. 
