@@ -43,6 +43,8 @@ Esse projeto tem o objetivo de implementar um coprocessador gráfico para realiz
 - [Módulo VGA](#módulo-vga)
   - [Temporização e Sincronismo](#temporização-e-sincronismo)  
   - [Escala, Centralização e Leitura do Framebuffer](#escala-centralização-e-leitura-do-framebuffer)
+ 
+- [Resultados](#resultados)
 
 ## Arquitetura e Caminho de Dados
 
